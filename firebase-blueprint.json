@@ -1,0 +1,435 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Account profile for a Forasni user (Client or Service Provider) in Jordan.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Firebase Auth UID of the user."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "User full name in Arabic or English."
+        },
+        "accountType": {
+          "type": "string",
+          "enum": ["CLIENT", "PROVIDER"],
+          "description": "Selected role in Forasni."
+        },
+        "governorate": {
+          "type": "string",
+          "description": "Jordanian governorate (e.g., عمان، إربد، الزرقاء)."
+        },
+        "neighborhood": {
+          "type": "string",
+          "description": "Neighborhood within the governorate."
+        },
+        "phoneNumber": {
+          "type": "string",
+          "description": "Jordanian phone number (+9627...)."
+        },
+        "pointsBalance": {
+          "type": "integer",
+          "description": "Points wallet balance for pay-per-lead and tender unlocks."
+        },
+        "linkedProviderId": {
+          "type": "string",
+          "description": "Optional provider document ID owned by this user."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "displayName",
+        "accountType",
+        "governorate",
+        "neighborhood",
+        "phoneNumber",
+        "pointsBalance",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ProviderProfile": {
+      "title": "ProviderProfile",
+      "description": "Craftsman or freelancer public profile in the Forasni directory.",
+      "type": "object",
+      "properties": {
+        "ownerId": {
+          "type": "string",
+          "description": "UID of the user who created or seeded this provider listing."
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Whether the provider profile is publicly listed in directory queries."
+        },
+        "name": {
+          "type": "string",
+          "description": "Full name of the craftsman or freelancer."
+        },
+        "skillCategory": {
+          "type": "string",
+          "description": "Category ID (ELECTRICIAN, PLUMBER, CARPENTER, BLACKSMITH, TUTOR, DESIGNER, TRANSLATOR, DRIVER)."
+        },
+        "skillTitle": {
+          "type": "string",
+          "description": "Arabic specialty title."
+        },
+        "governorate": {
+          "type": "string",
+          "description": "Jordanian city/governorate."
+        },
+        "neighborhood": {
+          "type": "string",
+          "description": "Residential or service neighborhood."
+        },
+        "bio": {
+          "type": "string",
+          "description": "Detailed summary of experience and services."
+        },
+        "businessPhone": {
+          "type": "string",
+          "description": "Direct business phone number for instant calls."
+        },
+        "whatsappNumber": {
+          "type": "string",
+          "description": "Direct WhatsApp phone number in international format (9627...)."
+        },
+        "hourlyRateJod": {
+          "type": "integer",
+          "description": "Indicative hourly or service rate in JOD."
+        },
+        "inspectionFeeJod": {
+          "type": "integer",
+          "description": "Visit / inspection fee in JOD."
+        },
+        "isAvailableNow": {
+          "type": "boolean",
+          "description": "Whether available immediately for urgent service."
+        },
+        "isVerified": {
+          "type": "boolean",
+          "description": "Whether professional license or vocational certificate is verified."
+        },
+        "licenseTitle": {
+          "type": "string",
+          "description": "Professional certificate or vocational license title."
+        },
+        "portfolioCount": {
+          "type": "integer",
+          "description": "Total number of photos and videos in portfolio (10 to 20 items)."
+        },
+        "portfolioTitles": {
+          "type": "string",
+          "description": "Pipe-delimited titles of portfolio photos and videos."
+        },
+        "portfolioTypes": {
+          "type": "string",
+          "description": "Pipe-delimited media types (PHOTO or VIDEO) for portfolio items."
+        },
+        "pointsBalance": {
+          "type": "integer",
+          "description": "Provider wallet points balance (1 point deducted per direct lead click)."
+        },
+        "leadsCount": {
+          "type": "integer",
+          "description": "Total direct Call/WhatsApp leads received."
+        },
+        "ratingAvg": {
+          "type": "number",
+          "description": "Average customer rating (1.0 to 5.0)."
+        },
+        "reviewCount": {
+          "type": "integer",
+          "description": "Number of verified customer reviews."
+        },
+        "latestReviewText": {
+          "type": "string",
+          "description": "Most recent customer review snippet."
+        },
+        "distanceKm": {
+          "type": "number",
+          "description": "Estimated distance in km for map and live tracking."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "ownerId",
+        "isPublished",
+        "name",
+        "skillCategory",
+        "skillTitle",
+        "governorate",
+        "neighborhood",
+        "bio",
+        "businessPhone",
+        "whatsappNumber",
+        "hourlyRateJod",
+        "inspectionFeeJod",
+        "isAvailableNow",
+        "isVerified",
+        "licenseTitle",
+        "portfolioCount",
+        "portfolioTitles",
+        "portfolioTypes",
+        "pointsBalance",
+        "leadsCount",
+        "ratingAvg",
+        "reviewCount",
+        "latestReviewText",
+        "distanceKm",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "JobTender": {
+      "title": "JobTender",
+      "description": "Customer job request / tender where craftsmen unlock contact details and submit price bids.",
+      "type": "object",
+      "properties": {
+        "clientId": {
+          "type": "string",
+          "description": "UID of the customer who posted the job request."
+        },
+        "clientName": {
+          "type": "string",
+          "description": "Name of the customer."
+        },
+        "clientPhone": {
+          "type": "string",
+          "description": "Customer phone number revealed when a craftsman unlocks the tender."
+        },
+        "isPublished": {
+          "type": "boolean",
+          "description": "Whether the tender is visible in public tender queries."
+        },
+        "title": {
+          "type": "string",
+          "description": "Short title of the required job."
+        },
+        "skillCategory": {
+          "type": "string",
+          "description": "Required skill category."
+        },
+        "governorate": {
+          "type": "string",
+          "description": "Jordanian city/governorate."
+        },
+        "neighborhood": {
+          "type": "string",
+          "description": "Neighborhood location of the job."
+        },
+        "description": {
+          "type": "string",
+          "description": "Full details of the required work."
+        },
+        "budgetJod": {
+          "type": "integer",
+          "description": "Estimated budget in Jordanian Dinars (JOD)."
+        },
+        "urgency": {
+          "type": "string",
+          "enum": ["URGENT", "TODAY", "FLEXIBLE"],
+          "description": "Urgency level of the job request."
+        },
+        "unlockCostPoints": {
+          "type": "integer",
+          "description": "Points required for a craftsman to unlock contact details and submit a quote."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["OPEN", "IN_PROGRESS", "CLOSED"],
+          "description": "Lifecycle status of the tender."
+        },
+        "bidsCount": {
+          "type": "integer",
+          "description": "Number of price offers submitted."
+        },
+        "lowestBidJod": {
+          "type": "integer",
+          "description": "Lowest bid submitted so far in JOD."
+        },
+        "latestBidSummary": {
+          "type": "string",
+          "description": "Summary of the latest craftsman offer."
+        },
+        "unlockedByCount": {
+          "type": "integer",
+          "description": "Number of craftsmen who unlocked this tender."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "clientId",
+        "clientName",
+        "clientPhone",
+        "isPublished",
+        "title",
+        "skillCategory",
+        "governorate",
+        "neighborhood",
+        "description",
+        "budgetJod",
+        "urgency",
+        "unlockCostPoints",
+        "status",
+        "bidsCount",
+        "lowestBidJod",
+        "latestBidSummary",
+        "unlockedByCount",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ServiceBooking": {
+      "title": "ServiceBooking",
+      "description": "Scheduled service appointment, live tracking status, and financial escrow contract.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated owner UID of this booking record."
+        },
+        "providerId": {
+          "type": "string",
+          "description": "Target provider document ID."
+        },
+        "providerName": {
+          "type": "string",
+          "description": "Name of the booked craftsman."
+        },
+        "providerSkill": {
+          "type": "string",
+          "description": "Specialty title of the craftsman."
+        },
+        "providerPhone": {
+          "type": "string",
+          "description": "Phone number of the craftsman."
+        },
+        "serviceTitle": {
+          "type": "string",
+          "description": "Description of the booked task or project."
+        },
+        "governorate": {
+          "type": "string",
+          "description": "Governorate of the service address."
+        },
+        "neighborhood": {
+          "type": "string",
+          "description": "Neighborhood of the service address."
+        },
+        "scheduledDate": {
+          "type": "string",
+          "description": "Scheduled date string (e.g., 2026-11-06)."
+        },
+        "scheduledTime": {
+          "type": "string",
+          "description": "Scheduled time slot (e.g., 04:00 م)."
+        },
+        "trackingStage": {
+          "type": "string",
+          "enum": ["CONFIRMED", "ON_THE_WAY", "IN_PROGRESS", "COMPLETED"],
+          "description": "Live tracking and appointment progress stage."
+        },
+        "trackingEtaMinutes": {
+          "type": "integer",
+          "description": "Estimated arrival time in minutes for live map tracking."
+        },
+        "escrowAmountJod": {
+          "type": "integer",
+          "description": "Amount held in Forasni financial escrow (الضمان المالي) in JOD."
+        },
+        "escrowCommissionJod": {
+          "type": "integer",
+          "description": "Platform escrow protection fee in JOD."
+        },
+        "escrowStatus": {
+          "type": "string",
+          "enum": ["NONE", "HELD_IN_ESCROW", "RELEASED"],
+          "description": "Escrow state (NONE for direct cash, HELD_IN_ESCROW while work is ongoing, RELEASED when confirmed)."
+        },
+        "isReviewed": {
+          "type": "boolean",
+          "description": "Whether the customer has submitted a rating and review for this booking."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation server timestamp (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update server timestamp (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "providerId",
+        "providerName",
+        "providerSkill",
+        "providerPhone",
+        "serviceTitle",
+        "governorate",
+        "neighborhood",
+        "scheduledDate",
+        "scheduledTime",
+        "trackingStage",
+        "trackingEtaMinutes",
+        "escrowAmountJod",
+        "escrowCommissionJod",
+        "escrowStatus",
+        "isReviewed",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Private user account profile, role, and points wallet."
+    },
+    "/providers/{providerId}": {
+      "schema": { "$ref": "#/entities/ProviderProfile" },
+      "description": "Public directory of Jordanian craftsmen and independent service providers."
+    },
+    "/tenders/{tenderId}": {
+      "schema": { "$ref": "#/entities/JobTender" },
+      "description": "Published customer job requests (tenders) and craftsman bids."
+    },
+    "/bookings/{bookingId}": {
+      "schema": { "$ref": "#/entities/ServiceBooking" },
+      "description": "User-scoped appointments, live craftsman route tracking, and financial escrow contracts."
+    }
+  }
+}

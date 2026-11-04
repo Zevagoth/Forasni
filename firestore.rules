@@ -1,0 +1,291 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Default-Deny Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Hardened Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // 1. UserProfile Validation Blueprint
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 2 && data.displayName.size() <= 100 &&
+             data.accountType is string && (data.accountType == 'CLIENT' || data.accountType == 'PROVIDER') &&
+             data.governorate is string && data.governorate.size() >= 2 && data.governorate.size() <= 60 &&
+             data.neighborhood is string && data.neighborhood.size() >= 2 && data.neighborhood.size() <= 80 &&
+             data.phoneNumber is string && data.phoneNumber.size() >= 7 && data.phoneNumber.size() <= 25 &&
+             data.pointsBalance is int && data.pointsBalance >= 0 && data.pointsBalance <= 100000 &&
+             (!('linkedProviderId' in data) || (data.linkedProviderId is string && data.linkedProviderId.size() <= 128)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'displayName', 'accountType', 'governorate',
+                         'neighborhood', 'phoneNumber', 'pointsBalance', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'displayName', 'accountType', 'governorate',
+                         'neighborhood', 'phoneNumber', 'pointsBalance', 'linkedProviderId',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'displayName', 'accountType', 'governorate', 'neighborhood',
+                         'phoneNumber', 'pointsBalance', 'linkedProviderId', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+    }
+
+    // 2. ProviderProfile Validation Blueprint
+    function isValidProvider(data) {
+      return data.ownerId is string && data.ownerId.size() >= 1 && data.ownerId.size() <= 128 &&
+             data.isPublished is bool &&
+             data.name is string && data.name.size() >= 2 && data.name.size() <= 100 &&
+             data.skillCategory is string && data.skillCategory.size() >= 2 && data.skillCategory.size() <= 50 &&
+             data.skillTitle is string && data.skillTitle.size() >= 2 && data.skillTitle.size() <= 80 &&
+             data.governorate is string && data.governorate.size() >= 2 && data.governorate.size() <= 60 &&
+             data.neighborhood is string && data.neighborhood.size() >= 2 && data.neighborhood.size() <= 80 &&
+             data.bio is string && data.bio.size() >= 5 && data.bio.size() <= 600 &&
+             data.businessPhone is string && data.businessPhone.size() >= 7 && data.businessPhone.size() <= 25 &&
+             data.whatsappNumber is string && data.whatsappNumber.size() >= 7 && data.whatsappNumber.size() <= 25 &&
+             data.hourlyRateJod is int && data.hourlyRateJod >= 1 && data.hourlyRateJod <= 1000 &&
+             data.inspectionFeeJod is int && data.inspectionFeeJod >= 0 && data.inspectionFeeJod <= 500 &&
+             data.isAvailableNow is bool &&
+             data.isVerified is bool &&
+             data.licenseTitle is string && data.licenseTitle.size() <= 150 &&
+             data.portfolioCount is int && data.portfolioCount >= 1 && data.portfolioCount <= 30 &&
+             data.portfolioTitles is string && data.portfolioTitles.size() >= 3 && data.portfolioTitles.size() <= 3500 &&
+             data.portfolioTypes is string && data.portfolioTypes.size() >= 3 && data.portfolioTypes.size() <= 1000 &&
+             data.pointsBalance is int && data.pointsBalance >= 0 && data.pointsBalance <= 100000 &&
+             data.leadsCount is int && data.leadsCount >= 0 && data.leadsCount <= 1000000 &&
+             (data.ratingAvg is int || data.ratingAvg is float) && data.ratingAvg >= 0 && data.ratingAvg <= 5 &&
+             data.reviewCount is int && data.reviewCount >= 0 && data.reviewCount <= 1000000 &&
+             data.latestReviewText is string && data.latestReviewText.size() <= 500 &&
+             (data.distanceKm is int || data.distanceKm is float) && data.distanceKm >= 0 && data.distanceKm <= 500 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /providers/{providerId} {
+      allow get: if isSignedIn() && isValidId(providerId) && existing().isPublished == true;
+      allow list: if isSignedIn() && existing().isPublished == true;
+
+      allow create: if isSignedIn() &&
+                       isValidId(providerId) &&
+                       incoming().ownerId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'ownerId', 'isPublished', 'name', 'skillCategory', 'skillTitle',
+                         'governorate', 'neighborhood', 'bio', 'businessPhone', 'whatsappNumber',
+                         'hourlyRateJod', 'inspectionFeeJod', 'isAvailableNow', 'isVerified',
+                         'licenseTitle', 'portfolioCount', 'portfolioTitles', 'portfolioTypes',
+                         'pointsBalance', 'leadsCount', 'ratingAvg', 'reviewCount',
+                         'latestReviewText', 'distanceKm', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'ownerId', 'isPublished', 'name', 'skillCategory', 'skillTitle',
+                         'governorate', 'neighborhood', 'bio', 'businessPhone', 'whatsappNumber',
+                         'hourlyRateJod', 'inspectionFeeJod', 'isAvailableNow', 'isVerified',
+                         'licenseTitle', 'portfolioCount', 'portfolioTitles', 'portfolioTypes',
+                         'pointsBalance', 'leadsCount', 'ratingAvg', 'reviewCount',
+                         'latestReviewText', 'distanceKm', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidProvider(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(providerId) &&
+                       isValidProvider(incoming()) &&
+                       incoming().ownerId == existing().ownerId &&
+                       incoming().createdAt == existing().createdAt && (
+                         // Action 1: Provider owner updates their profile, portfolio, or wallet points
+                         (existing().ownerId == request.auth.uid &&
+                          incoming().diff(existing()).affectedKeys().hasOnly([
+                            'name', 'skillCategory', 'skillTitle', 'governorate', 'neighborhood',
+                            'bio', 'businessPhone', 'whatsappNumber', 'hourlyRateJod',
+                            'inspectionFeeJod', 'isAvailableNow', 'isVerified', 'licenseTitle',
+                            'portfolioCount', 'portfolioTitles', 'portfolioTypes', 'pointsBalance',
+                            'leadsCount', 'ratingAvg', 'reviewCount', 'latestReviewText', 'updatedAt'
+                          ])) ||
+                         // Action 2: Client triggers pay-per-lead contact deduction or submits verified review
+                         (incoming().diff(existing()).affectedKeys().hasOnly([
+                            'pointsBalance', 'leadsCount', 'ratingAvg', 'reviewCount',
+                            'latestReviewText', 'updatedAt'
+                          ]))
+                       );
+
+      allow delete: if isSignedIn() && isValidId(providerId) && existing().ownerId == request.auth.uid;
+    }
+
+    // 3. JobTender Validation Blueprint
+    function isValidTender(data) {
+      return data.clientId is string && data.clientId.size() >= 1 && data.clientId.size() <= 128 &&
+             data.clientName is string && data.clientName.size() >= 2 && data.clientName.size() <= 100 &&
+             data.clientPhone is string && data.clientPhone.size() >= 7 && data.clientPhone.size() <= 25 &&
+             data.isPublished is bool &&
+             data.title is string && data.title.size() >= 3 && data.title.size() <= 120 &&
+             data.skillCategory is string && data.skillCategory.size() >= 2 && data.skillCategory.size() <= 50 &&
+             data.governorate is string && data.governorate.size() >= 2 && data.governorate.size() <= 60 &&
+             data.neighborhood is string && data.neighborhood.size() >= 2 && data.neighborhood.size() <= 80 &&
+             data.description is string && data.description.size() >= 5 && data.description.size() <= 800 &&
+             data.budgetJod is int && data.budgetJod >= 1 && data.budgetJod <= 50000 &&
+             data.urgency is string && (data.urgency == 'URGENT' || data.urgency == 'TODAY' || data.urgency == 'FLEXIBLE') &&
+             data.unlockCostPoints is int && data.unlockCostPoints >= 1 && data.unlockCostPoints <= 50 &&
+             data.status is string && (data.status == 'OPEN' || data.status == 'IN_PROGRESS' || data.status == 'CLOSED') &&
+             data.bidsCount is int && data.bidsCount >= 0 && data.bidsCount <= 1000 &&
+             data.lowestBidJod is int && data.lowestBidJod >= 0 && data.lowestBidJod <= 50000 &&
+             data.latestBidSummary is string && data.latestBidSummary.size() <= 400 &&
+             data.unlockedByCount is int && data.unlockedByCount >= 0 && data.unlockedByCount <= 1000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /tenders/{tenderId} {
+      allow get: if isSignedIn() && isValidId(tenderId) && existing().isPublished == true;
+      allow list: if isSignedIn() && existing().isPublished == true;
+
+      allow create: if isSignedIn() &&
+                       isValidId(tenderId) &&
+                       incoming().clientId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'clientId', 'clientName', 'clientPhone', 'isPublished', 'title',
+                         'skillCategory', 'governorate', 'neighborhood', 'description',
+                         'budgetJod', 'urgency', 'unlockCostPoints', 'status', 'bidsCount',
+                         'lowestBidJod', 'latestBidSummary', 'unlockedByCount',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'clientId', 'clientName', 'clientPhone', 'isPublished', 'title',
+                         'skillCategory', 'governorate', 'neighborhood', 'description',
+                         'budgetJod', 'urgency', 'unlockCostPoints', 'status', 'bidsCount',
+                         'lowestBidJod', 'latestBidSummary', 'unlockedByCount',
+                         'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidTender(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(tenderId) &&
+                       isValidTender(incoming()) &&
+                       existing().status != 'CLOSED' &&
+                       incoming().clientId == existing().clientId &&
+                       incoming().createdAt == existing().createdAt && (
+                         // Action 1: Tender owner updates status or details
+                         (existing().clientId == request.auth.uid &&
+                          incoming().diff(existing()).affectedKeys().hasOnly([
+                            'title', 'description', 'budgetJod', 'status', 'bidsCount',
+                            'lowestBidJod', 'latestBidSummary', 'unlockedByCount', 'updatedAt'
+                          ])) ||
+                         // Action 2: Craftsman unlocks tender and submits a price bid
+                         (incoming().diff(existing()).affectedKeys().hasOnly([
+                            'bidsCount', 'lowestBidJod', 'latestBidSummary',
+                            'unlockedByCount', 'updatedAt'
+                          ]))
+                       );
+
+      allow delete: if isSignedIn() && isValidId(tenderId) && existing().clientId == request.auth.uid;
+    }
+
+    // 4. ServiceBooking Validation Blueprint
+    function isValidBooking(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.providerId is string && data.providerId.size() >= 1 && data.providerId.size() <= 128 &&
+             data.providerName is string && data.providerName.size() >= 2 && data.providerName.size() <= 100 &&
+             data.providerSkill is string && data.providerSkill.size() >= 2 && data.providerSkill.size() <= 80 &&
+             data.providerPhone is string && data.providerPhone.size() >= 7 && data.providerPhone.size() <= 25 &&
+             data.serviceTitle is string && data.serviceTitle.size() >= 3 && data.serviceTitle.size() <= 200 &&
+             data.governorate is string && data.governorate.size() >= 2 && data.governorate.size() <= 60 &&
+             data.neighborhood is string && data.neighborhood.size() >= 2 && data.neighborhood.size() <= 80 &&
+             data.scheduledDate is string && data.scheduledDate.size() >= 4 && data.scheduledDate.size() <= 40 &&
+             data.scheduledTime is string && data.scheduledTime.size() >= 2 && data.scheduledTime.size() <= 40 &&
+             data.trackingStage is string && (
+               data.trackingStage == 'CONFIRMED' ||
+               data.trackingStage == 'ON_THE_WAY' ||
+               data.trackingStage == 'IN_PROGRESS' ||
+               data.trackingStage == 'COMPLETED'
+             ) &&
+             data.trackingEtaMinutes is int && data.trackingEtaMinutes >= 0 && data.trackingEtaMinutes <= 240 &&
+             data.escrowAmountJod is int && data.escrowAmountJod >= 0 && data.escrowAmountJod <= 50000 &&
+             data.escrowCommissionJod is int && data.escrowCommissionJod >= 0 && data.escrowCommissionJod <= 5000 &&
+             data.escrowStatus is string && (
+               data.escrowStatus == 'NONE' ||
+               data.escrowStatus == 'HELD_IN_ESCROW' ||
+               data.escrowStatus == 'RELEASED'
+             ) &&
+             data.isReviewed is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    match /bookings/{bookingId} {
+      allow get: if isSignedIn() && isValidId(bookingId) && existing().userId == request.auth.uid;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(bookingId) &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll([
+                         'userId', 'providerId', 'providerName', 'providerSkill', 'providerPhone',
+                         'serviceTitle', 'governorate', 'neighborhood', 'scheduledDate',
+                         'scheduledTime', 'trackingStage', 'trackingEtaMinutes',
+                         'escrowAmountJod', 'escrowCommissionJod', 'escrowStatus',
+                         'isReviewed', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'providerId', 'providerName', 'providerSkill', 'providerPhone',
+                         'serviceTitle', 'governorate', 'neighborhood', 'scheduledDate',
+                         'scheduledTime', 'trackingStage', 'trackingEtaMinutes',
+                         'escrowAmountJod', 'escrowCommissionJod', 'escrowStatus',
+                         'isReviewed', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidBooking(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(bookingId) &&
+                       existing().userId == request.auth.uid &&
+                       isValidBooking(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'scheduledDate', 'scheduledTime', 'trackingStage', 'trackingEtaMinutes',
+                         'escrowAmountJod', 'escrowCommissionJod', 'escrowStatus',
+                         'isReviewed', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && isValidId(bookingId) && existing().userId == request.auth.uid;
+    }
+  }
+}

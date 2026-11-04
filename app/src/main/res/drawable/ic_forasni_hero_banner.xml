@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="360dp"
+    android:height="160dp"
+    android:viewportWidth="360"
+    android:viewportHeight="160">
+    <path android:pathData="M0,0h360v160h-360z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="0"
+                android:startY="0"
+                android:endX="360"
+                android:endY="160"
+                android:type="linear">
+                <item android:offset="0.0" android:color="#8B1E2F" />
+                <item android:offset="0.6" android:color="#611320" />
+                <item android:offset="1.0" android:color="#0D6E52" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- Decorative Jordanian geometric star / arch motifs -->
+    <path
+        android:fillColor="#1AFFFFFF"
+        android:pathData="M295,-10 L355,50 L295,110 L235,50 Z" />
+    <path
+        android:fillColor="#26F3B73F"
+        android:pathData="M295,10 L335,50 L295,90 L255,50 Z" />
+    <!-- Warm Amman hills silhouette -->
+    <path
+        android:fillColor="#22000000"
+        android:pathData="M0,125 Q70,95 145,120 T295,108 T360,122 L360,160 L0,160 Z" />
+    <path
+        android:fillColor="#33FBF8F5"
+        android:pathData="M0,138 Q95,112 190,135 T360,128 L360,160 L0,160 Z" />
+    <!-- Golden seven-pointed star inspired accent -->
+    <path
+        android:fillColor="#F3B73F"
+        android:pathData="M56,26 L60,36 L71,36 L62,43 L65,54 L56,47 L47,54 L50,43 L41,36 L52,36 Z" />
+</vector>

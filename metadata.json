@@ -1,0 +1,6 @@
+{
+  "name": "فرصني",
+  "description": "منصة خدمية مخصصة للسوق الأردني لربط أصحاب المهارات والحرفيين المستقلين بالزبائن بشكل مباشر وسريع",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

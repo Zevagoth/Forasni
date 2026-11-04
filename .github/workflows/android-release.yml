@@ -1,0 +1,62 @@
+name: Build & Release Forasni APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.3.1'
+
+      - name: Decode debug keystore & prepare .env
+        run: |
+          if [ -f debug.keystore.base64 ]; then
+            base64 -d debug.keystore.base64 > debug.keystore
+          fi
+          if [ ! -f .env ] && [ -f .env.example ]; then
+            cp .env.example .env
+          fi
+
+      - name: Build Debug APK
+        run: gradle assembleDebug --no-daemon
+
+      - name: Rename APK to Forasni.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk Forasni.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Forasni-Android-APK
+          path: Forasni.apk
+
+      - name: Publish Latest GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0
+          name: "📲 تطبيق فرصني للأندرويد - Forasni v1.0.0 (تحميل مباشر)"
+          body: |
+            ## 🇯🇴 تطبيق فرصني (Forasni) - النسخة الكاملة للأندرويد
+            اضغط على ملف **`Forasni.apk`** بالأسفل تحت كلمة **Assets** لتحميل التطبيق وتثبيته مباشرة على هاتفك.
+          files: Forasni.apk
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

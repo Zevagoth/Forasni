@@ -3,6 +3,8 @@
 # 🛠️ فـرصـنـي | Forasni
 ### منصة الحرفيين والخدمات المنزلية الأولى في الأردن 🇯🇴
 
+<p dir="ltr" lang="en">Forasni is an Arabic-first Android marketplace for home services in Jordan. Browse local tradespeople by service and area, contact providers directly by phone or WhatsApp, and post service requests to receive quotes.</p>
+
 [![تحميل تطبيق فرصني مباشرة للأندرويد](https://img.shields.io/badge/📲_اضغط_هنا_لتحميل_التطبيق_مباشرة_(APK)-Forasni_Jordan-1B5E20?style=for-the-badge&logo=android&logoColor=white)](../../releases/latest/download/Forasni.apk)
 
 [![أحدث إصدار](https://img.shields.io/github/v/release/heshamjawarneh/forasni?label=الإصدار&style=flat-square&color=00796B)](../../releases/latest)

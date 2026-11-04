@@ -285,17 +285,15 @@ class ForasniRepository(private val db: FirebaseFirestore) {
         }
     }
 
-    // 7. Record Direct Call / WhatsApp Click (Pay-per-Result Points Deduction)
+    // 7. Record Direct Call / WhatsApp Click (Free Direct Contact — No Points Deducted on Button Click)
     suspend fun recordDirectLeadContact(provider: ProviderProfile): Result<Unit> = runCatching {
         requireUserId()
         require(provider.id.isNotBlank()) { "Provider ID must not be blank" }
         val docRef = db.collection("providers").document(provider.id)
-        val newPoints = (provider.pointsBalance - 1L).coerceAtLeast(0L)
         val newLeads = provider.leadsCount + 1L
         try {
             docRef.update(
                 mapOf(
-                    "pointsBalance" to newPoints,
                     "leadsCount" to newLeads,
                     "updatedAt" to FieldValue.serverTimestamp()
                 )

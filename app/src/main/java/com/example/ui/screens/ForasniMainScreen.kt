@@ -120,6 +120,7 @@ fun ForasniMainScreen(
     val filteredProvidersState by viewModel.filteredProvidersState.collectAsStateWithLifecycle()
     val allProvidersState by viewModel.providersState.collectAsStateWithLifecycle()
     val filterState by viewModel.filterState.collectAsStateWithLifecycle()
+    val favoriteProviderIds by viewModel.favoriteProviderIds.collectAsStateWithLifecycle()
     val tendersState by viewModel.tendersState.collectAsStateWithLifecycle()
     val bookingsState by viewModel.bookingsState.collectAsStateWithLifecycle()
     val unlockedTenderIds by viewModel.unlockedTenderIds.collectAsStateWithLifecycle()
@@ -135,6 +136,8 @@ fun ForasniMainScreen(
     var selectedProviderForReview by remember { mutableStateOf<Triple<ProviderProfile, String?, String?>?>(null) }
     var showCreateTenderDialog by remember { mutableStateOf(false) }
     var showPromoteAd5JodDialog by remember { mutableStateOf(false) }
+    var showHomeInspectionDialog by remember { mutableStateOf(false) }
+    var showMovingCalculatorDialog by remember { mutableStateOf(false) }
     var selectedTenderForUnlock by remember { mutableStateOf<JobTender?>(null) }
     var showMyCraftsmanSheet by remember { mutableStateOf(false) }
     var activeCliQRequest by remember { mutableStateOf<CliQDialogRequest?>(null) }
@@ -335,11 +338,17 @@ fun ForasniMainScreen(
                                     providersState = filteredProvidersState,
                                     filterState = filterState,
                                     availableNeighborhoods = viewModel.availableNeighborhoodsForSelectedGov(),
+                                    favoriteProviderIds = favoriteProviderIds,
+                                    seasonalCampaigns = viewModel.seasonalCampaigns,
                                     onSearchQueryChange = viewModel::updateSearchQuery,
                                     onSelectSkill = viewModel::selectSkillCategory,
                                     onSelectGovernorate = viewModel::selectGovernorate,
                                     onSelectNeighborhood = viewModel::selectNeighborhood,
                                     onToggleOnlyAvailable = viewModel::toggleOnlyAvailableNow,
+                                    onToggleEmergency24h = viewModel::toggleEmergency24hFilter,
+                                    onToggleFemaleProviders = viewModel::toggleFemaleProvidersFilter,
+                                    onToggleFavoritesFilter = viewModel::toggleFavoritesFilter,
+                                    onToggleFavorite = viewModel::toggleFavoriteProvider,
                                     onToggleLiveMap = viewModel::toggleLiveMapSection,
                                     onResetFilters = viewModel::resetFilters,
                                     onSelectProvider = { selectedProviderForDetail = it },
@@ -367,7 +376,13 @@ fun ForasniMainScreen(
                                         )
                                     },
                                     onOpenMyCraftsmanProfile = { showMyCraftsmanSheet = true },
-                                    onOpenQuickServiceTender = { showCreateTenderDialog = true }
+                                    onOpenQuickServiceTender = { showCreateTenderDialog = true },
+                                    onBookSeasonalCampaign = { campaign ->
+                                        viewModel.bookSeasonalCampaign(campaign)
+                                        currentTab = ForasniTab.BOOKINGS
+                                    },
+                                    onOpenHomeInspectionDialog = { showHomeInspectionDialog = true },
+                                    onOpenMovingCalculatorDialog = { showMovingCalculatorDialog = true }
                                 )
                             }
 
@@ -428,6 +443,7 @@ fun ForasniMainScreen(
                                             isWalletTopUp = false
                                         )
                                     },
+                                    onSavePartsInvoice = viewModel::recordPartsInvoiceOnBooking,
                                     onNavigateToDirectory = { currentTab = ForasniTab.DIRECTORY }
                                 )
                             }
@@ -469,6 +485,8 @@ fun ForasniMainScreen(
     selectedProviderForDetail?.let { provider ->
         ProviderDetailBottomSheet(
             provider = provider,
+            isFavorite = provider.id in favoriteProviderIds,
+            onToggleFavorite = viewModel::toggleFavoriteProvider,
             onDismiss = { selectedProviderForDetail = null },
             onDirectCall = { prov ->
                 viewModel.recordDirectLeadAndNotify(prov, "الاتصال الهاتفي")
@@ -643,4 +661,41 @@ fun ForasniMainScreen(
             }
         )
     }
+
+    if (showHomeInspectionDialog) {
+        HomeInspectionRequestDialog(
+            onDismiss = { showHomeInspectionDialog = false },
+            onConfirmInspection = { purposeLabel, gov, hood, scheduledDate, priceJod ->
+                viewModel.bookHomeInspectionReport(
+                    purposeLabel = purposeLabel,
+                    governorate = gov,
+                    neighborhood = hood,
+                    scheduledDate = scheduledDate,
+                    priceJod = priceJod
+                )
+                showHomeInspectionDialog = false
+                currentTab = ForasniTab.BOOKINGS
+            }
+        )
+    }
+
+    if (showMovingCalculatorDialog) {
+        ApartmentMovingCalculatorDialog(
+            onDismiss = { showMovingCalculatorDialog = false },
+            onConfirmMovingBooking = { roomsLabel, floorLabel, hasElevator, extrasLabel, fromArea, toArea, totalPriceJod ->
+                viewModel.bookApartmentMovingService(
+                    roomsLabel = roomsLabel,
+                    floorLabel = floorLabel,
+                    hasElevator = hasElevator,
+                    extrasLabel = extrasLabel,
+                    fromArea = fromArea,
+                    toArea = toArea,
+                    totalPriceJod = totalPriceJod
+                )
+                showMovingCalculatorDialog = false
+                currentTab = ForasniTab.BOOKINGS
+            }
+        )
+    }
 }
+

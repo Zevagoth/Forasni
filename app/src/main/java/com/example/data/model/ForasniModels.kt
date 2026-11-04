@@ -18,6 +18,11 @@ enum class PriceAgreementMode(val id: String, val labelAr: String) {
     ON_INSPECTION("ON_INSPECTION", "لم يُحدد بعد (بالاتفاق مع الحرفي)")
 }
 
+enum class PartsInclusionMode(val id: String, val labelAr: String, val tag: String) {
+    LABOR_ONLY("LABOR_ONLY", "🛠️ أجرة يد فقط (القطع على الزبون بفاتورة المحل)", "[أجرة يد فقط]"),
+    PARTS_INCLUDED("PARTS_INCLUDED", "📦 شامل قطع الغيار الأصلية والتركيب", "[شامل القطع والتركيب]")
+}
+
 enum class SkillCategory(
     val id: String,
     val titleAr: String,
@@ -81,7 +86,8 @@ data class PortfolioMediaItem(
     val title: String,
     val isVideo: Boolean,
     val isBeforeAfter: Boolean = index % 2 == 1,
-    val durationLabel: String = if (isVideo) "00:45" else "صورة قبل/بعد موثقة"
+    val durationLabel: String = if (isVideo) "00:45" else "صورة قبل/بعد موثقة",
+    val mediaUri: String = ""
 )
 
 data class CustomerReviewItem(
@@ -174,6 +180,7 @@ data class ProviderProfile(
             "prov_irbid_carp_3" -> "MAHMOUDWOOD"
             "prov_zarqa_black_4" -> "HAMZAIRONJO"
             "prov_amman_tutor_5" -> "RAWANMATHJO"
+            "prov_amman_female_clean_12" -> "UMSHAHADHOME"
             "prov_amman_design_6" -> "YAZANDESIGN"
             "prov_aqaba_ac_7" -> "FIRASCOOLAC"
             else -> whatsappNumber.takeLast(9).ifEmpty { "FORASNIJO" }
@@ -183,6 +190,33 @@ data class ProviderProfile(
     val isSameNeighborhoodBadge: Boolean
         get() = distanceKm <= 2.0
 
+    @get:Exclude
+    val hasNonConvictionCertificate: Boolean
+        get() = isVerified || licenseTitle.contains("عدم محكومية")
+
+    @get:Exclude
+    val isEmergency24hResponder: Boolean
+        get() = isAvailableNow && (
+            licenseTitle.contains("طوارئ") ||
+                bio.contains("طوارئ") ||
+                skillCategory in listOf(
+                    SkillCategory.ELECTRICIAN.id,
+                    SkillCategory.PLUMBER.id,
+                    SkillCategory.AC_TECH.id,
+                    SkillCategory.BLACKSMITH.id
+                )
+            )
+
+    @get:Exclude
+    val isFemaleProvider: Boolean
+        get() = id in listOf("prov_amman_tutor_5", "prov_amman_female_clean_12", "prov_irbid_trans_8") ||
+            name.contains("أ. روان") ||
+            name.contains("أم ") ||
+            name.contains("سارة") ||
+            name.contains("نادين") ||
+            licenseTitle.contains("قسم السيدات") ||
+            skillTitle.contains("للسيدات")
+
     fun vehicleModelDisplay(): String {
         if (licenseTitle.contains("المركبة:")) {
             val afterCar = licenseTitle.substringAfter("المركبة:").trim()
@@ -190,6 +224,7 @@ data class ProviderProfile(
         }
         return when (id) {
             "prov_amman_clean_10" -> "فان هونداي H1 أبيض (معدات شطف وتنظيف)"
+            "prov_amman_female_clean_12" -> "كيا بيكانتو أبيض (تنسيق وتنظيف منزلي للعائلات)"
             "prov_amman_garden_11" -> "بيك أب كيا بونغو (معدات جز عشب وحدائق)"
             "prov_amman_elec_1" -> "كيا نيرو هجين فضي (ورشة كهرباء متنقلة)"
             "prov_amman_plumb_2" -> "ميتسوبيشي L200 (معدات سباكة وضغط مياه)"
@@ -206,6 +241,7 @@ data class ProviderProfile(
         }
         return when (id) {
             "prov_amman_clean_10" -> "لوحة أردنية 19-84520"
+            "prov_amman_female_clean_12" -> "لوحة أردنية 24-77310"
             "prov_amman_garden_11" -> "لوحة أردنية 42-31908"
             "prov_amman_elec_1" -> "لوحة أردنية 21-60412"
             "prov_amman_plumb_2" -> "لوحة أردنية 17-99214"
@@ -219,23 +255,27 @@ data class ProviderProfile(
         licenseTitle.substringBefore("• المركبة:").trim()
 
     fun parsedPortfolioItems(): List<PortfolioMediaItem> {
-        val titles = portfolioTitles.split("|").map { it.trim() }.filter { it.isNotEmpty() }
+        val rawTitles = portfolioTitles.split("|").map { it.trim() }.filter { it.isNotEmpty() }
         val types = portfolioTypes.split("|").map { it.trim() }.filter { it.isNotEmpty() }
-        if (titles.isEmpty()) return emptyList()
-        return titles.mapIndexed { idx, title ->
+        if (rawTitles.isEmpty()) return emptyList()
+        return rawTitles.mapIndexed { idx, rawEntry ->
+            val cleanTitle = rawEntry.substringBefore("::").trim()
+            val attachedUri = rawEntry.substringAfter("::", "").trim()
             val typeStr = types.getOrElse(idx) { if (idx % 3 == 0) "VIDEO" else "PHOTO" }
             val isVid = typeStr.equals("VIDEO", ignoreCase = true)
-            val isBeforeAfter = !isVid && (idx % 2 == 0 || title.contains("قبل وبعد"))
+            val isBeforeAfter = !isVid && (idx % 2 == 0 || cleanTitle.contains("قبل وبعد") || attachedUri.isNotEmpty())
             PortfolioMediaItem(
                 index = idx + 1,
-                title = title,
+                title = cleanTitle,
                 isVideo = isVid,
                 isBeforeAfter = isBeforeAfter,
                 durationLabel = when {
+                    attachedUri.isNotEmpty() -> "📷 صورة عمل حقيقية مرفقة #${idx + 1}"
                     isVid -> "فيديو عمل (${25 + (idx * 7) % 45} ثانية)"
                     isBeforeAfter -> "صورة (قبل / بعد الشغل) #${idx + 1}"
                     else -> "صورة عمل موثقة #${idx + 1}"
-                }
+                },
+                mediaUri = attachedUri
             )
         }
     }
@@ -316,10 +356,18 @@ data class JobTender(
         return after.ifEmpty { "00:14 ثانية" }
     }
 
+    fun partsInclusionLabel(): String = when {
+        description.contains("[شامل القطع والتركيب]") -> "📦 شامل قطع الغيار والتركيب"
+        description.contains("[أجرة يد فقط]") -> "🛠️ أجرة يد فقط (القطع على الزبون بفاتورة)"
+        else -> "🛠️ أجرة يد وفحص (القطع حسب الحاجة بفاتورة)"
+    }
+
     fun cleanDescriptionDisplay(): String =
         description
             .replace("[السعر: بالاتفاق بعد المعاينة]", "")
             .replace("[قابل للمفاصلة]", "")
+            .replace("[شامل القطع والتركيب]", "")
+            .replace("[أجرة يد فقط]", "")
             .replace(Regex("\\[ملاحظة صوتية:[^]]*]"), "")
             .trim()
 
@@ -351,6 +399,44 @@ data class ServiceBooking(
     val isReviewed: Boolean = false,
     @ServerTimestamp val createdAt: Timestamp? = null,
     @ServerTimestamp val updatedAt: Timestamp? = null
+) {
+    fun partsInclusionLabel(): String = when {
+        serviceTitle.contains("شامل القطع") -> "📦 شامل قطع الغيار الأصلية والتركيب"
+        serviceTitle.contains("أجرة يد فقط") -> "🛠️ أجرة يد فقط (القطع على الزبون بفاتورة المحل)"
+        else -> "🛠️ أجرة يد + كفالة مصنعية (القطع بفاتورة أصلية)"
+    }
+
+    fun warrantyCertificateNumber(): String {
+        val code = id.filter { it.isLetterOrDigit() }.takeLast(5).uppercase().ifEmpty { "962JO" }
+        return "WARR-JO-2026-$code"
+    }
+
+    fun warrantyExpiryDateLabel(): String = "صالحة لمدة 7 أيام كاملة من تاريخ الإنجاز (بختم منصة فرصني)"
+
+    fun doorstepSecurityPin(): String {
+        val hash = kotlin.math.abs(id.hashCode())
+        val pin = 1000 + (hash % 9000)
+        return pin.toString()
+    }
+
+    fun craftsmanDigitalBadgeId(): String {
+        val code = providerId.filter { it.isLetterOrDigit() }.takeLast(4).uppercase().ifEmpty { "JO26" }
+        return "ID-JO-$code"
+    }
+}
+
+data class SeasonalCampaignOffer(
+    val id: String,
+    val seasonBadgeAr: String,
+    val titleAr: String,
+    val subtitleAr: String,
+    val priceJod: Int,
+    val originalPriceJod: Int,
+    val includesItems: List<String>,
+    val skillCategory: String,
+    val providerId: String,
+    val providerName: String,
+    val providerPhone: String
 )
 
 data class B2BPartnerOffer(
@@ -362,3 +448,4 @@ data class B2BPartnerOffer(
     val couponCode: String,
     val categoryAr: String
 )
+

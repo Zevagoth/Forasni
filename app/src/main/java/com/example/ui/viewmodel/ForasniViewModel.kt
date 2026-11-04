@@ -10,6 +10,7 @@ import com.example.data.model.JordanSeedData
 import com.example.data.model.MonthlyBuildingPackage
 import com.example.data.model.PromotedServiceAd
 import com.example.data.model.ProviderProfile
+import com.example.data.model.SeasonalCampaignOffer
 import com.example.data.model.ServiceBooking
 import com.example.data.model.SkillCategory
 import com.example.data.model.ThemeMode
@@ -40,6 +41,9 @@ data class DirectoryFilterState(
     val selectedNeighborhood: String = "جميع الأحياء",
     val searchQuery: String = "",
     val onlyAvailableNow: Boolean = false,
+    val onlyEmergency24h: Boolean = false,
+    val onlyFemaleProviders: Boolean = false,
+    val onlyFavorites: Boolean = false,
     val showLiveMapSection: Boolean = true
 )
 
@@ -55,6 +59,11 @@ class ForasniViewModel(
 
     private val _filterState = MutableStateFlow(DirectoryFilterState())
     val filterState: StateFlow<DirectoryFilterState> = _filterState.asStateFlow()
+
+    private val _favoriteProviderIds = MutableStateFlow<Set<String>>(
+        setOf("prov_amman_elec_1", "prov_amman_clean_10", "prov_amman_female_clean_12")
+    )
+    val favoriteProviderIds: StateFlow<Set<String>> = _favoriteProviderIds.asStateFlow()
 
     private val _statusBanner = MutableStateFlow<String?>(null)
     val statusBanner: StateFlow<String?> = _statusBanner.asStateFlow()
@@ -74,6 +83,7 @@ class ForasniViewModel(
 
     val b2bPartnerOffers: List<B2BPartnerOffer> = JordanSeedData.b2bHardwarePartnerOffers
     val monthlyBuildingPackages: List<MonthlyBuildingPackage> = JordanSeedData.monthlyBuildingPackages
+    val seasonalCampaigns: List<SeasonalCampaignOffer> = JordanSeedData.seasonalCampaigns
 
     private val localUserProfileFlow = MutableStateFlow<UserProfile?>(
         UserProfile(
@@ -106,7 +116,7 @@ class ForasniViewModel(
                 providerName = "أبو العز التعمري",
                 providerSkill = "شطف وتنظيف عمارات، درج ومداخل",
                 providerPhone = "+962796012345",
-                serviceTitle = "شطف وتنظيف درج ومدخل العمارة (4 طوابق)",
+                serviceTitle = "شطف وتنظيف درج ومدخل العمارة (4 طوابق) [شامل القطع والتركيب]",
                 governorate = "عمّان",
                 neighborhood = "طبربور",
                 scheduledDate = "اليوم - 2026-11-04",
@@ -125,7 +135,7 @@ class ForasniViewModel(
                 providerName = "أبو رعد السلطي",
                 providerSkill = "جز عشب وتنسيق حدائق منزلية",
                 providerPhone = "+962775129900",
-                serviceTitle = "جز عشب الحديقة وتقليم الأشجار",
+                serviceTitle = "جز عشب الحديقة وتقليم الأشجار [أجرة يد فقط]",
                 governorate = "عمّان",
                 neighborhood = "خلدا",
                 scheduledDate = "اليوم - 2026-11-04",
@@ -180,8 +190,9 @@ class ForasniViewModel(
 
     val filteredProvidersState: StateFlow<UiState<List<ProviderProfile>>> = combine(
         providersState,
-        _filterState
-    ) { provState, filter ->
+        _filterState,
+        _favoriteProviderIds
+    ) { provState, filter, favIds ->
         when (provState) {
             is UiState.Loading -> UiState.Loading
             is UiState.Error -> provState
@@ -194,6 +205,9 @@ class ForasniViewModel(
                     val matchesNeighborhood = filter.selectedNeighborhood == "جميع الأحياء" ||
                         provider.neighborhood == filter.selectedNeighborhood
                     val matchesAvailability = !filter.onlyAvailableNow || provider.isAvailableNow
+                    val matchesEmergency = !filter.onlyEmergency24h || provider.isEmergency24hResponder
+                    val matchesFemale = !filter.onlyFemaleProviders || provider.isFemaleProvider
+                    val matchesFavorites = !filter.onlyFavorites || (provider.id in favIds)
                     val q = filter.searchQuery.trim()
                     val matchesQuery = q.isEmpty() ||
                         provider.name.contains(q, ignoreCase = true) ||
@@ -202,7 +216,14 @@ class ForasniViewModel(
                         provider.neighborhood.contains(q, ignoreCase = true) ||
                         provider.bio.contains(q, ignoreCase = true)
 
-                    matchesSkill && matchesGov && matchesNeighborhood && matchesAvailability && matchesQuery
+                    matchesSkill &&
+                        matchesGov &&
+                        matchesNeighborhood &&
+                        matchesAvailability &&
+                        matchesEmergency &&
+                        matchesFemale &&
+                        matchesFavorites &&
+                        matchesQuery
                 }
                 UiState.Success(filtered)
             }
@@ -297,6 +318,41 @@ class ForasniViewModel(
         )
     }
 
+    fun toggleEmergency24hFilter() {
+        val next = !_filterState.value.onlyEmergency24h
+        _filterState.value = _filterState.value.copy(onlyEmergency24h = next)
+        if (next) {
+            _statusBanner.value = "🚨 تم تفعيل وضع فزعة الطوارئ (24 ساعة) — يظهر الحرفيون الجاهزون للوصول خلال 15-20 دقيقة"
+        }
+    }
+
+    fun toggleFemaleProvidersFilter() {
+        val next = !_filterState.value.onlyFemaleProviders
+        _filterState.value = _filterState.value.copy(onlyFemaleProviders = next)
+        if (next) {
+            _statusBanner.value = "👩‍💼 تم تفعيل فلتر قسم السيدات والعائلات (مقدمات خدمة موثقات للعائلات)"
+        }
+    }
+
+    fun toggleFavoritesFilter() {
+        val next = !_filterState.value.onlyFavorites
+        _filterState.value = _filterState.value.copy(onlyFavorites = next)
+        if (next) {
+            _statusBanner.value = "❤️ عرض قائمة «صنايعية بيتنا المفضلين» المحفوظين لعائلتك"
+        }
+    }
+
+    fun toggleFavoriteProvider(provider: ProviderProfile) {
+        val current = _favoriteProviderIds.value
+        val isAdding = provider.id !in current
+        _favoriteProviderIds.value = if (isAdding) current + provider.id else current - provider.id
+        _statusBanner.value = if (isAdding) {
+            "❤️ تمت إضافة (${provider.name}) إلى قائمة «صنايعية بيتنا المفضلين» للرجوع السريع!"
+        } else {
+            "تمت إزالة (${provider.name}) من قائمة المفضلين"
+        }
+    }
+
     fun toggleLiveMapSection() {
         _filterState.value = _filterState.value.copy(
             showLiveMapSection = !_filterState.value.showLiveMapSection
@@ -323,20 +379,19 @@ class ForasniViewModel(
             localProvidersFlow.value = localProvidersFlow.value.map {
                 if (it.id == provider.id) {
                     it.copy(
-                        pointsBalance = (it.pointsBalance - 1L).coerceAtLeast(0L),
                         leadsCount = it.leadsCount + 1L
                     )
                 } else {
                     it
                 }
             }
-            _statusBanner.value = "تم فتح $channelLabel المباشر مع ${provider.name} (تم احتساب نقطة نتيجة واحدة من رصيد الحرفي)"
+            _statusBanner.value = "تم فتح $channelLabel المباشر مع ${provider.name} مجاناً (بدون خصم أي نقاط على كبسة الزر)"
             return
         }
         viewModelScope.launch {
             val result = repository.recordDirectLeadContact(provider)
             if (result.isSuccess) {
-                _statusBanner.value = "تم فتح $channelLabel المباشر مع ${provider.name} (تم احتساب نقطة نتيجة واحدة من رصيد الحرفي)"
+                _statusBanner.value = "تم فتح $channelLabel المباشر مع ${provider.name} مجاناً (بدون خصم أي نقاط على كبسة الزر)"
             }
         }
     }
@@ -629,6 +684,120 @@ class ForasniViewModel(
         )
         localBookingsFlow.value = listOf(newBooking) + localBookingsFlow.value.filterNot { it.id == newBooking.id }
         _statusBanner.value = "تم الاشتراك في (${pkg.titleAr}) بـ ${pkg.monthlyPriceJod} د.أ شهرياً وإضافتها لجدول المواعيد!"
+    }
+
+    fun bookSeasonalCampaign(campaign: SeasonalCampaignOffer) {
+        val newBooking = ServiceBooking(
+            id = "booking_season_${campaign.id}",
+            userId = currentUserId,
+            providerId = campaign.providerId,
+            providerName = campaign.providerName,
+            providerSkill = campaign.seasonBadgeAr,
+            providerPhone = campaign.providerPhone,
+            serviceTitle = "${campaign.titleAr} [شامل القطع والتركيب]",
+            governorate = "عمّان",
+            neighborhood = "خلدا",
+            scheduledDate = "اليوم - موعد فوري",
+            scheduledTime = "03:30 مساءً",
+            trackingStage = "ON_THE_WAY",
+            trackingEtaMinutes = 12L,
+            escrowAmountJod = campaign.priceJod.toLong(),
+            escrowCommissionJod = 1L,
+            escrowStatus = "HELD_IN_ESCROW",
+            isReviewed = false
+        )
+        localBookingsFlow.value = listOf(newBooking) + localBookingsFlow.value.filterNot { it.id == newBooking.id }
+        _statusBanner.value = "تم حجز (${campaign.titleAr}) بسعر العرض الموسمي (${campaign.priceJod} د.أ بدلاً من ${campaign.originalPriceJod} د.أ) وبدأ تتبع السيارة!"
+    }
+
+    fun bookHomeInspectionReport(
+        purposeLabel: String,
+        governorate: String,
+        neighborhood: String,
+        scheduledDate: String,
+        priceJod: Long
+    ) {
+        val newBooking = ServiceBooking(
+            id = "booking_inspect_${UUID.randomUUID().toString().take(6)}",
+            userId = currentUserId,
+            providerId = "prov_amman_elec_1",
+            providerName = "م. طارق النسور + فريق الفحص الهندسي",
+            providerSkill = "فحص هندسي شامل للشقق (كهرباء + سباكة + رطوبة + تكييف)",
+            providerPhone = "+962795412098",
+            serviceTitle = "🏠 $purposeLabel (تقرير فني معتمد) [أجرة يد فقط]",
+            governorate = governorate,
+            neighborhood = neighborhood,
+            scheduledDate = scheduledDate,
+            scheduledTime = "04:00 مساءً",
+            trackingStage = "ON_THE_WAY",
+            trackingEtaMinutes = 14L,
+            escrowAmountJod = priceJod,
+            escrowCommissionJod = 1L,
+            escrowStatus = "HELD_IN_ESCROW",
+            isReviewed = false
+        )
+        localBookingsFlow.value = listOf(newBooking) + localBookingsFlow.value
+        _statusBanner.value = "تم حجز ($purposeLabel) في $governorate - $neighborhood بـ $priceJod د.أ مع كود أمان الباب وتقرير فني مفصل!"
+    }
+
+    fun bookApartmentMovingService(
+        roomsLabel: String,
+        floorLabel: String,
+        hasElevator: Boolean,
+        extrasLabel: String,
+        fromArea: String,
+        toArea: String,
+        totalPriceJod: Long
+    ) {
+        val elevatorStr = if (hasElevator) "مع مصعد" else "تحميل درج"
+        val newBooking = ServiceBooking(
+            id = "booking_move_${UUID.randomUUID().toString().take(6)}",
+            userId = currentUserId,
+            providerId = "prov_amman_driver_9",
+            providerName = "كابتن ليث الدعجة + فريق النجارة والتغليف",
+            providerSkill = "نقل عفش وترحيل شقق مع الفك والتركيب",
+            providerPhone = "+962795908871",
+            serviceTitle = "🚚 نقل عفش ($roomsLabel • $floorLabel • $elevatorStr) من $fromArea إلى $toArea ($extrasLabel) [شامل القطع والتركيب]",
+            governorate = "عمّان",
+            neighborhood = toArea,
+            scheduledDate = "اليوم / حسب الموعد",
+            scheduledTime = "11:00 صباحاً",
+            trackingStage = "ON_THE_WAY",
+            trackingEtaMinutes = 15L,
+            escrowAmountJod = totalPriceJod,
+            escrowCommissionJod = 2L,
+            escrowStatus = "HELD_IN_ESCROW",
+            isReviewed = false
+        )
+        localBookingsFlow.value = listOf(newBooking) + localBookingsFlow.value
+        _statusBanner.value = "تم حجز باص نقل العفش وفريق الفك والتركيب بـ $totalPriceJod د.أ! يمكنك تتبع الباص الآن."
+    }
+
+    fun recordPartsInvoiceOnBooking(
+        booking: ServiceBooking,
+        laborJod: Long,
+        partsCostJod: Long,
+        storeName: String,
+        hasNeighborDiscount: Boolean
+    ) {
+        val discountedLabor = if (hasNeighborDiscount) (laborJod * 70L / 100L).coerceAtLeast(5L) else laborJod
+        val newTotal = discountedLabor + partsCostJod
+        val updatedTitle = buildString {
+            append(booking.serviceTitle.substringBefore(" • فاتورة القطع:"))
+            append(" • فاتورة القطع: $partsCostJod د.أ ($storeName)")
+            if (hasNeighborDiscount) append(" • خصم الجيران -30%")
+        }
+        localBookingsFlow.value = localBookingsFlow.value.map {
+            if (it.id == booking.id) {
+                it.copy(
+                    serviceTitle = updatedTitle,
+                    escrowAmountJod = newTotal
+                )
+            } else {
+                it
+            }
+        }
+        _statusBanner.value = "تم توثيق فاتورة قطع الغيار ($partsCostJod د.أ من $storeName) وتحديث إجمالي الحساب إلى $newTotal د.أ بشفافية كاملة!"
     }
 
     fun postNewJobTender(

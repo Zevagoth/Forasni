@@ -83,6 +83,44 @@ object JordanSeedData {
             latestReviewText = "مهند الكردي★5★جز عشب الحديقة وقلم الشجر ونظف المكان بالكامل، إيده خضراء وشغله ممتاز.",
             distanceKm = 1.6
         ),
+        "prov_amman_female_clean_12" to ProviderProfile(
+            id = "prov_amman_female_clean_12",
+            ownerId = seedOwnerId,
+            isPublished = true,
+            name = "أم شهد الكيلاني (قسم السيدات والعائلات)",
+            skillCategory = SkillCategory.CLEANING.id,
+            skillTitle = "تنظيف وترتيب منازل وضيافة للسيدات والعائلات فقط",
+            governorate = "عمّان",
+            neighborhood = "خلدا",
+            bio = "فريق نسائي أردني متخصص بتنظيف وترتيب الشقق والفلل، تعقيم المطابخ والمفروشات، وتجهيز البيوت للمناسبات بخصوصية وأمان تام للعائلات.",
+            businessPhone = "+962796641120",
+            whatsappNumber = "962796641120",
+            hourlyRateJod = 14L,
+            inspectionFeeJod = 0L,
+            isAvailableNow = true,
+            isVerified = true,
+            licenseTitle = "قسم السيدات والعائلات • شهادة عدم محكومية موثقة",
+            portfolioCount = 10L,
+            portfolioTitles = listOf(
+                "ترتيب وتنظيف شامل لشقة عائلية في خلدا",
+                "فيديو تعقيم وتلميع مطبخ خشب ورخام",
+                "تنظيف كنب وسجاد بالبخار الجاف بالمنزل",
+                "ترتيب خزائن الملابس وغرف الأطفال",
+                "تنظيف شبابيك وأباجورات الصالون",
+                "فيديو تجهيز وترتيب ضيافة استقبال المولود",
+                "تنظيف وتعقيم حمامات ومغاسل الضيوف",
+                "تلميع ثريات وزجاج الطاولات",
+                "تنظيف ما بعد الدهان والتجديد للعائلات",
+                "خدمة ترتيب أسبوعية دورية للسيدات"
+            ).joinToString("|"),
+            portfolioTypes = "PHOTO|VIDEO|PHOTO|PHOTO|PHOTO|VIDEO|PHOTO|PHOTO|PHOTO|PHOTO",
+            pointsBalance = 42L,
+            leadsCount = 88L,
+            ratingAvg = 5.0,
+            reviewCount = 53L,
+            latestReviewText = "أم طلال المجالي★5★قمة في الأمانة والنظافة والرقّي بالتعامل، مريحة جداً للعائلات والسيدات.",
+            distanceKm = 1.2
+        ),
         "prov_amman_elec_1" to ProviderProfile(
             id = "prov_amman_elec_1",
             ownerId = seedOwnerId,
@@ -92,14 +130,14 @@ object JordanSeedData {
             skillTitle = "فني كهرباء منازل ولوحات ذكية",
             governorate = "عمّان",
             neighborhood = "خلدا",
-            bio = "خبرة 12 عاماً في تأسيس وصيانة الكهرباء المنزلية، كشف أعطال الشورت، تركيب السبوتات، والأنظمة الذكية في عمّان الغربية.",
+            bio = "خبرة 12 عاماً في تأسيس وصيانة الكهرباء المنزلية، كشف أعطال الشورت، تركيب السبوتات، والأنظمة الذكية في عمّان الغربية. طوارئ 24 ساعة.",
             businessPhone = "+962795412098",
             whatsappNumber = "962795412098",
             hourlyRateJod = 12L,
             inspectionFeeJod = 5L,
             isAvailableNow = true,
             isVerified = true,
-            licenseTitle = "رخصة مزاولة مهنة - مؤسسة التدريب المهني الأردنية",
+            licenseTitle = "رخصة مزاولة مهنة + شهادة عدم محكومية موثقة • طوارئ 24 ساعة",
             portfolioCount = 14L,
             portfolioTitles = listOf(
                 "تأسيس لوحة قواطع 3 فاز فيلا خلدا",
@@ -651,4 +689,59 @@ object JordanSeedData {
             recommendedApartments = 1
         )
     )
+
+    val seasonalCampaigns: List<SeasonalCampaignOffer> = listOf(
+        SeasonalCampaignOffer(
+            id = "season_winter_boiler",
+            seasonBadgeAr = "❄️ حملة تجهيز الشتاء والمنخفضات",
+            titleAr = "باقة التدفئة المركزية وعزل السطح قبل المطر",
+            subtitleAr = "صيانة بويلر التدفئة + تنفيس الراديترات + فحص عزل السطح والمزاريب",
+            priceJod = 25,
+            originalPriceJod = 40,
+            includesItems = listOf(
+                "فحص وتنظيف حارقة بويلر التدفئة المركزية (ديزل/غاز)",
+                "تنفيس جميع راديترات الشقة ومعايرة ضغط الساعة",
+                "فحص عزل السطح ومصارف مياه الأمطار (المزاريب)"
+            ),
+            skillCategory = SkillCategory.PLUMBER.id,
+            providerId = "prov_amman_plumb_2",
+            providerName = "أبو سند العجارمة",
+            providerPhone = "+962776184420"
+        ),
+        SeasonalCampaignOffer(
+            id = "season_summer_ac_tanks",
+            seasonBadgeAr = "☀️ حملة تجهيز الصيف والخزانات",
+            titleAr = "غسيل وتعقيم خزانات المياه + صيانة المكيفات",
+            subtitleAr = "تعقيم خزانين على السطح وتنظيف الرواسب + غسيل وفحص غاز مكيفين",
+            priceJod = 22,
+            originalPriceJod = 35,
+            includesItems = listOf(
+                "سحب الرواسب وغسيل وتعقيم خزانات المياه بمواد آمنة",
+                "غسيل الفلاتر والوحدة الداخلية والخارجية للمكيفات",
+                "فحص ضغط غاز الفريون وكفاءة التبريد بالمنزل"
+            ),
+            skillCategory = SkillCategory.AC_TECH.id,
+            providerId = "prov_aqaba_ac_7",
+            providerName = "فراس الرياطي",
+            providerPhone = "+962779031188"
+        ),
+        SeasonalCampaignOffer(
+            id = "season_home_inspection",
+            seasonBadgeAr = "🏠 فحص هندسي قبل الشراء/الإيجار",
+            titleAr = "فحص شقة شامل (كهرباء + سباكة + رطوبة + تكييف)",
+            subtitleAr = "لا تدفع عربون الشقة قبل فحصها! تقرير فني يكشف العيوب المخفية",
+            priceJod = 25,
+            originalPriceJod = 40,
+            includesItems = listOf(
+                "فحص ضغط مواسير المياه وكشف أي تسريب أو رطوبة مخفية بالجدران",
+                "فحص لوحة القواطع الكهربائية والأحمال والتأريض والأباريز",
+                "تقرير مكتوب مع كفالة من مهندس وفني معتمد في فرصني"
+            ),
+            skillCategory = SkillCategory.ELECTRICIAN.id,
+            providerId = "prov_amman_elec_1",
+            providerName = "م. طارق النسور",
+            providerPhone = "+962795412098"
+        )
+    )
 }
+

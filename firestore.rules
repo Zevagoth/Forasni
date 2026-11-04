@@ -88,7 +88,7 @@ service cloud.firestore {
              data.inspectionFeeJod is int && data.inspectionFeeJod >= 0 && data.inspectionFeeJod <= 500 &&
              data.isAvailableNow is bool &&
              data.isVerified is bool &&
-             data.licenseTitle is string && data.licenseTitle.size() <= 150 &&
+             data.licenseTitle is string && data.licenseTitle.size() <= 200 &&
              data.portfolioCount is int && data.portfolioCount >= 1 && data.portfolioCount <= 30 &&
              data.portfolioTitles is string && data.portfolioTitles.size() >= 3 && data.portfolioTitles.size() <= 3500 &&
              data.portfolioTypes is string && data.portfolioTypes.size() >= 3 && data.portfolioTypes.size() <= 1000 &&
@@ -141,11 +141,18 @@ service cloud.firestore {
                             'portfolioCount', 'portfolioTitles', 'portfolioTypes', 'pointsBalance',
                             'leadsCount', 'ratingAvg', 'reviewCount', 'latestReviewText', 'updatedAt'
                           ])) ||
-                         // Action 2: Client triggers pay-per-lead contact deduction or submits verified review
-                         (incoming().diff(existing()).affectedKeys().hasOnly([
-                            'pointsBalance', 'leadsCount', 'ratingAvg', 'reviewCount',
-                            'latestReviewText', 'updatedAt'
-                          ]))
+                         // Action 2: Client records direct contact lead (pointsBalance is strictly immutable by clients)
+                         (incoming().pointsBalance == existing().pointsBalance &&
+                          incoming().diff(existing()).affectedKeys().hasOnly([
+                            'leadsCount', 'updatedAt'
+                          ]) &&
+                          incoming().leadsCount == existing().leadsCount + 1) ||
+                         // Action 3: Client submits verified review (reviewCount increments by +1, pointsBalance untouched)
+                         (incoming().pointsBalance == existing().pointsBalance &&
+                          incoming().diff(existing()).affectedKeys().hasOnly([
+                            'ratingAvg', 'reviewCount', 'latestReviewText', 'updatedAt'
+                          ]) &&
+                          incoming().reviewCount == existing().reviewCount + 1)
                        );
 
       allow delete: if isSignedIn() && isValidId(providerId) && existing().ownerId == request.auth.uid;

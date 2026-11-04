@@ -117,6 +117,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.R
+import com.example.util.ArabicSmartSearchEngine
 import com.example.data.model.B2BPartnerOffer
 import com.example.data.model.JORDAN_GOVERNORATES
 import com.example.data.model.JobTender
@@ -261,7 +262,7 @@ fun DirectoryTabContent(
                             onValueChange = onSearchQueryChange,
                             placeholder = {
                                 Text(
-                                    text = "ابحث بالاسم (أبو العز، أبو رعد، طارق...) أو المهنة أو الحي",
+                                    text = "ابحث بأي لهجة أو عطل: (موسرجي، قاطع بنزل، كندشن، حنفية بتنقط، خلدا...)",
                                     style = MaterialTheme.typography.bodySmall
                                 )
                             },
@@ -289,26 +290,59 @@ fun DirectoryTabContent(
                                 .testTag("directory_search_input")
                         )
 
+                        val detectedIntent = remember(filterState.searchQuery) {
+                            if (filterState.searchQuery.isBlank()) {
+                                null
+                            } else {
+                                ArabicSmartSearchEngine.searchAndRankProviders(
+                                    emptyList(),
+                                    filterState.searchQuery
+                                ).matchedIntentLabel
+                            }
+                        }
+
+                        if (filterState.searchQuery.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Surface(
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                shape = RoundedCornerShape(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text(
+                                    text = if (detectedIntent != null) {
+                                        "🧠 الخوارزمية الذكية فهمت طلبك: $detectedIntent (مع التسامح مع الأخطاء الإملائية والمرادفات)"
+                                    } else {
+                                        "🧠 البحث الذكي مفعّل: يطابق الجذور اللغوية، المرادفات الأردنية، والأخطاء الإملائية تلقائياً"
+                                    },
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Quick search by person name or daily task
+                        // Quick search by Jordanian dialect problem, symptom, or craftsman name
                         Row(
                             modifier = Modifier.horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "بحث سريع بالاسم:",
+                                text = "جرّب البحث الذكي:",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                             listOf(
+                                "موسرجي تسريب مي",
+                                "قاطع الكهربا بنزل",
+                                "تعبئة غاز كندشن",
+                                "صيانة بويلر",
+                                "ديانا نقل عفش",
                                 "أبو العز التعمري",
-                                "أبو رعد السلطي",
-                                "طارق العجارمة",
-                                "أبو سند العبادي",
-                                "شطف عمارات",
-                                "جز عشب"
+                                "شطف عمارات"
                             ).forEach { quickName ->
                                 Surface(
                                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.22f),
@@ -3207,6 +3241,8 @@ fun WalletAndAccountTabContent(
     val context = LocalContext.current
     val profile = (userProfileState as? UiState.Success)?.data
     var showEditAccountDialog by remember { mutableStateOf(false) }
+    var showPrivacyPolicyDialog by remember { mutableStateOf(false) }
+    var showDeleteAccountConfirmDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = Modifier
@@ -3585,7 +3621,61 @@ fun WalletAndAccountTabContent(
             }
         }
 
-        // 4. Sign Out / Optional Google Sign-In Button
+        // 4. Google Play Store Compliance: Privacy Policy & Delete Account
+        item {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(14.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "🛡️ الخصوصية وحماية البيانات (معايير Google Play الرسمية)",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = "يلتزم تطبيق «فرصني» بحماية خصوصية المستخدمين في الأردن وعدم مشاركة أرقام الهواتف أو البيانات إلا حسب اختيارك.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { showPrivacyPolicyDialog = true },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("privacy_policy_button")
+                        ) {
+                            Text("📜 سياسة الخصوصية", style = MaterialTheme.typography.labelMedium)
+                        }
+                        OutlinedButton(
+                            onClick = { showDeleteAccountConfirmDialog = true },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .testTag("delete_account_button")
+                        ) {
+                            Text(
+                                text = "🗑️ حذف حسابي وبياناتي",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. Sign Out / Optional Google Sign-In Button
         item {
             OutlinedButton(
                 onClick = onSignOut,
@@ -3601,6 +3691,69 @@ fun WalletAndAccountTabContent(
             }
             Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+
+    if (showPrivacyPolicyDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showPrivacyPolicyDialog = false },
+            title = { Text("📜 سياسة الخصوصية وشروط استخدام «فرصني»") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "1. جمع البيانات واستخدامها:\nنجمع فقط الاسم، المحافظة/الحي، ورقم الهاتف لتسهيل التواصل المباشر بين الزبون والحرفي في المملكة الأردنية الهاشمية.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = "2. الصور والوسائط:\nيستخدم التطبيق منتقي الصور الرسمي (Android Photo Picker) دون الوصول إلى ملفات جهازك الخاصة.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = "3. الدفع والتحويلات البنكية:\nتتم الحوالات عبر نظام CliQ أو IBAN الرسمي التابع للبنوك الأردنية.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = "4. حق حذف الحساب والبيانات:\nيحق لأي مستخدم طلب حذف حسابه وجميع بياناته نهائياً في أي وقت من خلال زر (حذف حسابي وبياناتي) في هذه الصفحة.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            },
+            confirmButton = {
+                Button(onClick = { showPrivacyPolicyDialog = false }) {
+                    Text("موافق وفهمت")
+                }
+            }
+        )
+    }
+
+    if (showDeleteAccountConfirmDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { showDeleteAccountConfirmDialog = false },
+            title = { Text("🗑️ تأكيد حذف الحساب والبيانات نهائياً") },
+            text = {
+                Text(
+                    text = "هل أنت متأكد من رغبتك في حذف حسابك وجميع بياناتك المرتبطة في تطبيق «فرصني» نهائياً؟ سيتم مسح بيانات ملفك وتسجيل الخروج فوراً.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteAccountConfirmDialog = false
+                        onSignOut()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("نعم، احذف حسابي نهائياً")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccountConfirmDialog = false }) {
+                    Text("تراجع")
+                }
+            }
+        )
     }
 
     if (showEditAccountDialog && profile != null) {

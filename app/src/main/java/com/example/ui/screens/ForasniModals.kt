@@ -96,8 +96,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import android.content.Intent
+import android.webkit.WebResourceRequest
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.ui.viewinterop.AndroidView
 import com.example.R
 import com.example.data.model.JORDAN_GOVERNORATES
 import com.example.data.model.JobTender
@@ -486,6 +491,43 @@ fun ProviderDetailBottomSheet(
                 }
             }
 
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // In-App Video Showcase Button (Opens inside Forasni without leaving to TikTok/Facebook)
+            Button(
+                onClick = {
+                    val firstVid = allPortfolio.firstOrNull { it.isVideo } ?: PortfolioMediaItem(
+                        index = 1,
+                        title = "فيديو ميداني لتوثيق شغل ${provider.name} (${provider.skillTitle})",
+                        isVideo = true,
+                        isBeforeAfter = false,
+                        durationLabel = "فيديو موثق 00:35",
+                        mediaUri = ""
+                    )
+                    selectedMediaPreview = firstVid
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiary
+                ),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .testTag("sheet_watch_in_app_video_button")
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PlayCircleFilled,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "🎥 شاهد فيديو شغل المعلم (يفتح داخل التطبيق مباشرة)",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
             Spacer(modifier = Modifier.height(18.dp))
             HorizontalDivider()
             Spacer(modifier = Modifier.height(14.dp))
@@ -734,91 +776,113 @@ fun ProviderDetailBottomSheet(
 
     if (selectedMediaPreview != null) {
         val media = selectedMediaPreview!!
-        val context = LocalContext.current
-        val previewBitmap = rememberPortfolioBitmap(context, media.mediaUri)
-        AlertDialog(
-            onDismissRequest = { selectedMediaPreview = null },
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = if (media.isVideo) Icons.Default.Videocam else Icons.Default.PhotoLibrary,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = if (media.isVideo) "معاينة فيديو عمل موثق" else "معاينة صورة عمل حقيقية موثقة",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+        if (media.isVideo) {
+            InAppVideoPlayerDialog(
+                provider = provider,
+                media = media,
+                onDismiss = { selectedMediaPreview = null },
+                onBookNow = {
+                    selectedMediaPreview = null
+                    onOpenBookingEscrow(provider)
                 }
-            },
-            text = {
-                Column {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(190.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(
-                                        MaterialTheme.colorScheme.primary,
-                                        MaterialTheme.colorScheme.secondary
+            )
+        } else {
+            val context = LocalContext.current
+            val previewBitmap = rememberPortfolioBitmap(context, media.mediaUri)
+            AlertDialog(
+                onDismissRequest = { selectedMediaPreview = null },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.PhotoLibrary,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "معاينة صورة عمل حقيقية موثقة",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                },
+                text = {
+                    Column {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(190.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(
+                                            MaterialTheme.colorScheme.primary,
+                                            MaterialTheme.colorScheme.secondary
+                                        )
                                     )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (previewBitmap != null) {
+                                Image(
+                                    bitmap = previewBitmap,
+                                    contentDescription = media.title,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxWidth().height(190.dp)
                                 )
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        if (previewBitmap != null) {
-                            Image(
-                                bitmap = previewBitmap,
-                                contentDescription = media.title,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier.fillMaxWidth().height(190.dp)
-                            )
-                        } else {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_forasni_hero_banner),
-                                contentDescription = media.title,
-                                contentScale = ContentScale.Crop,
-                                alpha = 0.45f,
-                                modifier = Modifier.fillMaxWidth().height(190.dp)
-                            )
-                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                Icon(
-                                    imageVector = if (media.isVideo) Icons.Default.PlayCircleFilled else Icons.Default.CheckCircle,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier.size(48.dp)
+                            } else {
+                                Image(
+                                    painter = painterResource(id = R.drawable.ic_forasni_hero_banner),
+                                    contentDescription = media.title,
+                                    contentScale = ContentScale.Crop,
+                                    alpha = 0.45f,
+                                    modifier = Modifier.fillMaxWidth().height(190.dp)
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = media.durationLabel,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Icon(
+                                        imageVector = Icons.Default.CheckCircle,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier.size(48.dp)
+                                    )
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = media.durationLabel,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        color = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                }
                             }
                         }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = media.title,
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "تم تنفيذ هذا العمل وتوثيقه بواسطة ${provider.name} في ${provider.governorate} (${provider.neighborhood}).",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text(
-                        text = media.title,
-                        style = MaterialTheme.typography.titleSmall
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "تم تنفيذ هذا العمل وتوثيقه بواسطة ${provider.name} في ${provider.governorate} (${provider.neighborhood}).",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            selectedMediaPreview = null
+                            onOpenBookingEscrow(provider)
+                        }
+                    ) {
+                        Text("✅ احجز مع المعلم الآن")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { selectedMediaPreview = null }) {
+                        Text("إغلاق")
+                    }
                 }
-            },
-            confirmButton = {
-                TextButton(onClick = { selectedMediaPreview = null }) {
-                    Text("إغلاق المعاينة")
-                }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -2441,6 +2505,31 @@ fun CreateOrEditProviderSheet(
                 )
             }
 
+            var newWorkVideoUrl by remember { mutableStateOf("") }
+
+            OutlinedTextField(
+                value = newWorkVideoUrl,
+                onValueChange = {
+                    newWorkVideoUrl = it
+                    if (it.isNotBlank()) {
+                        newWorkIsVideo = true
+                        if (newWorkTitle.isBlank()) {
+                            newWorkTitle = "فيديو توثيق شغل ميداني (${portfolioItems.size + 1})"
+                        }
+                    }
+                },
+                label = {
+                    Text("🎥 رابط فيديو لشغلك (TikTok / YouTube Shorts / Reels) - يفتح داخل التطبيق مجاناً")
+                },
+                placeholder = {
+                    Text("https://www.youtube.com/shorts/... أو رابط تيك توك/ريلز")
+                },
+                singleLine = true,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("craftsman_video_url_input")
+            )
+
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -2460,17 +2549,19 @@ fun CreateOrEditProviderSheet(
                 IconButton(
                     onClick = {
                         if (newWorkTitle.isNotBlank() && portfolioItems.size < 20) {
-                            val combinedEntry = if (newWorkPickedUri.isNotBlank()) {
-                                "${newWorkTitle.trim()}::$newWorkPickedUri"
+                            val effectiveUri = newWorkVideoUrl.trim().ifBlank { newWorkPickedUri }
+                            val combinedEntry = if (effectiveUri.isNotBlank()) {
+                                "${newWorkTitle.trim()}::$effectiveUri"
                             } else {
                                 newWorkTitle.trim()
                             }
                             portfolioItems.add(
                                 0,
-                                combinedEntry to if (newWorkIsVideo) "VIDEO" else "PHOTO"
+                                combinedEntry to if (newWorkIsVideo || newWorkVideoUrl.isNotBlank()) "VIDEO" else "PHOTO"
                             )
                             newWorkTitle = ""
                             newWorkPickedUri = ""
+                            newWorkVideoUrl = ""
                         }
                     }
                 ) {
@@ -3793,5 +3884,286 @@ fun ApartmentMovingCalculatorDialog(
         }
     )
 }
+
+/**
+ * تحويل روابط تيك توك أو يوتيوب شورتس أو ريلز إلى رابط مشغّل مدمج (Embed URL) يفتح داخل التطبيق فقط
+ */
+private fun toEmbeddedVideoUrl(rawUrl: String): String {
+    val trimmed = rawUrl.trim()
+    if (trimmed.isEmpty()) return ""
+    return when {
+        trimmed.contains("youtube.com/shorts/") -> {
+            val id = trimmed.substringAfter("youtube.com/shorts/").substringBefore("?").substringBefore("/")
+            "https://www.youtube.com/embed/$id?autoplay=1&playsinline=1&rel=0"
+        }
+        trimmed.contains("youtu.be/") -> {
+            val id = trimmed.substringAfter("youtu.be/").substringBefore("?").substringBefore("/")
+            "https://www.youtube.com/embed/$id?autoplay=1&playsinline=1&rel=0"
+        }
+        trimmed.contains("youtube.com/watch?v=") -> {
+            val id = trimmed.substringAfter("v=").substringBefore("&")
+            "https://www.youtube.com/embed/$id?autoplay=1&playsinline=1&rel=0"
+        }
+        trimmed.contains("tiktok.com/") && trimmed.contains("/video/") -> {
+            val id = trimmed.substringAfter("/video/").substringBefore("?").substringBefore("/")
+            "https://www.tiktok.com/embed/v2/$id"
+        }
+        else -> trimmed
+    }
+}
+
+/**
+ * مشغّل فيديو توثيق شغل الحرفي المدمج داخل تطبيق «فرصني» (In-App Video Player Dialog)
+ * يشتغل داخل التطبيق نفسه بدون نقل الزبون إلى تيك توك أو فيسبوك، مع زر حجز فوري بالأسفل.
+ */
+@Suppress("SetJavaScriptEnabled")
+@Composable
+fun InAppVideoPlayerDialog(
+    provider: ProviderProfile,
+    media: PortfolioMediaItem,
+    onDismiss: () -> Unit,
+    onBookNow: () -> Unit
+) {
+    val hasExternalEmbedUrl = remember(media.mediaUri) {
+        media.mediaUri.startsWith("http://") || media.mediaUri.startsWith("https://")
+    }
+    var useWebEmbedMode by remember(hasExternalEmbedUrl) { mutableStateOf(hasExternalEmbedUrl) }
+    var isPlaying by remember { mutableStateOf(true) }
+    var currentSecond by remember { mutableIntStateOf(0) }
+    val totalSeconds = 35
+
+    val stages = remember(provider) {
+        listOf(
+            "00:00 - 00:10 • فحص العطل والموقع في ${provider.neighborhood} وتجهيز المعدات",
+            "00:11 - 00:24 • تنفيذ شغل (${provider.skillTitle}) بدقة ونظافة عالية",
+            "00:25 - 00:35 • الفحص النهائي قبل وبعد الشغل وتسليم الكفالة للزبون ✅"
+        )
+    }
+
+    LaunchedEffect(isPlaying, useWebEmbedMode) {
+        while (isPlaying && !useWebEmbedMode) {
+            delay(1000L)
+            currentSecond = (currentSecond + 1) % (totalSeconds + 1)
+        }
+    }
+
+    val currentStageCaption = when {
+        currentSecond <= 10 -> stages[0]
+        currentSecond <= 24 -> stages[1]
+        else -> stages[2]
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Videocam,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column {
+                    Text(
+                        text = "مشغّل فيديو «فرصني» الداخلي 🎥",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "توثيق شغل المعلم ${provider.name} (داخل التطبيق بدون خروج)",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                if (hasExternalEmbedUrl) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        FilterChip(
+                            selected = useWebEmbedMode,
+                            onClick = { useWebEmbedMode = true },
+                            label = { Text("مشغّل الفيديو المدمج") }
+                        )
+                        FilterChip(
+                            selected = !useWebEmbedMode,
+                            onClick = { useWebEmbedMode = false },
+                            label = { Text("معاينة مراحل الشغل") }
+                        )
+                    }
+                }
+
+                if (useWebEmbedMode && hasExternalEmbedUrl) {
+                    val embedUrl = remember(media.mediaUri) { toEmbeddedVideoUrl(media.mediaUri) }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(260.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+                    ) {
+                        AndroidView(
+                            factory = { ctx ->
+                                WebView(ctx).apply {
+                                    settings.javaScriptEnabled = true
+                                    settings.domStorageEnabled = true
+                                    settings.mediaPlaybackRequiresUserGesture = false
+                                    webViewClient = object : WebViewClient() {
+                                        override fun shouldOverrideUrlLoading(
+                                            view: WebView?,
+                                            request: WebResourceRequest?
+                                        ): Boolean {
+                                            val url = request?.url?.toString() ?: return true
+                                            // منع الخروج إلى تطبيق تيك توك أو فيسبوك الخارجي وإبقاء الزبون داخل فرصني
+                                            return !(url.startsWith("http://") || url.startsWith("https://"))
+                                        }
+                                    }
+                                    loadUrl(embedUrl)
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().height(260.dp)
+                        )
+                    }
+                } else {
+                    // مشغّل الفيديو التفاعلي المدمج داخل التطبيق
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(220.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                Brush.linearGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.primary,
+                                        MaterialTheme.colorScheme.secondary
+                                    )
+                                )
+                            )
+                            .clickable { isPlaying = !isPlaying },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_forasni_hero_banner),
+                            contentDescription = media.title,
+                            contentScale = ContentScale.Crop,
+                            alpha = 0.38f,
+                            modifier = Modifier.fillMaxWidth().height(220.dp)
+                        )
+
+                        // شارة "يعمل داخل التطبيق" في الأعلى
+                        Surface(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                text = if (isPlaying) "🔴 يعمل الآن داخل فرصني • بدون إعلانات" else "⏸ متوقف مؤقتاً",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (isPlaying) Icons.Default.StopCircle else Icons.Default.PlayCircleFilled,
+                                contentDescription = if (isPlaying) "إيقاف مؤقت" else "تشغيل الفيديو",
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(54.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Surface(
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text(
+                                    text = currentStageCaption,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                                )
+                            }
+                        }
+
+                        // شريط التقدم الزمني للفيديو بالأسفل
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.88f))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            LinearProgressIndicator(
+                                progress = { currentSecond.toFloat() / totalSeconds.toFloat() },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Text(
+                                    text = String.format(Locale.US, "00:%02d / 00:%02d", currentSecond, totalSeconds),
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                                Text(
+                                    text = "اضغط على الشاشة للإيقاف/التشغيل",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Text(
+                    text = media.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "💡 ميزة المشغّل الداخلي: يفتح الفيديو داخل تطبيق «فرصني» مباشرة بدون نقل الزبون لتيك توك أو فيسبوك، وبدون أي تكلفة سيرفرات تخزين سحابي عليك!",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onBookNow,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                ),
+                modifier = Modifier.testTag("video_player_book_now_button")
+            ) {
+                Icon(imageVector = Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("✅ عجبك الشغل؟ احجز مع المعلم الآن")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("إغلاق الفيديو")
+            }
+        }
+    )
+}
+
 
 

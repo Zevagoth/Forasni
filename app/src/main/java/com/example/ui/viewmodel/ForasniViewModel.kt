@@ -16,6 +16,7 @@ import com.example.data.model.SkillCategory
 import com.example.data.model.ThemeMode
 import com.example.data.model.UserProfile
 import com.example.data.repository.ForasniRepository
+import com.example.util.ArabicSmartSearchEngine
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -197,7 +198,7 @@ class ForasniViewModel(
             is UiState.Loading -> UiState.Loading
             is UiState.Error -> provState
             is UiState.Success -> {
-                val filtered = provState.data.filter { provider ->
+                val baseFiltered = provState.data.filter { provider ->
                     val matchesSkill = filter.selectedSkill == SkillCategory.ALL ||
                         provider.skillCategory == filter.selectedSkill.id
                     val matchesGov = filter.selectedGovernorate == "الكل" ||
@@ -208,13 +209,6 @@ class ForasniViewModel(
                     val matchesEmergency = !filter.onlyEmergency24h || provider.isEmergency24hResponder
                     val matchesFemale = !filter.onlyFemaleProviders || provider.isFemaleProvider
                     val matchesFavorites = !filter.onlyFavorites || (provider.id in favIds)
-                    val q = filter.searchQuery.trim()
-                    val matchesQuery = q.isEmpty() ||
-                        provider.name.contains(q, ignoreCase = true) ||
-                        provider.skillTitle.contains(q, ignoreCase = true) ||
-                        provider.governorate.contains(q, ignoreCase = true) ||
-                        provider.neighborhood.contains(q, ignoreCase = true) ||
-                        provider.bio.contains(q, ignoreCase = true)
 
                     matchesSkill &&
                         matchesGov &&
@@ -222,10 +216,16 @@ class ForasniViewModel(
                         matchesAvailability &&
                         matchesEmergency &&
                         matchesFemale &&
-                        matchesFavorites &&
-                        matchesQuery
+                        matchesFavorites
                 }
-                UiState.Success(filtered)
+
+                val q = filter.searchQuery.trim()
+                val finalProviders = if (q.isEmpty()) {
+                    baseFiltered
+                } else {
+                    ArabicSmartSearchEngine.searchAndRankProviders(baseFiltered, q).providers
+                }
+                UiState.Success(finalProviders)
             }
         }
     }.stateIn(

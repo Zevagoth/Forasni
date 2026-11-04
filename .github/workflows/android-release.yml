@@ -74,14 +74,22 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.0.0-preview.1
-          name: "📲 Forasni Android Preview (تطبيق فرصني - تحميل مباشر)"
+          name: "Forasni v1.0.0 Preview"
           body: |
-            ## 🇯🇴 تطبيق فرصني (Forasni) - نسخة الأندرويد الجاهزة للتثبيت
-            اضغط على ملف **`Forasni.apk`** بالأسفل تحت قسم **Assets** لتحميل التطبيق وتثبيته مباشرة على هاتفك.
+            ### Forasni Android Preview
 
-            ---
-            Private Android preview for the repository owner.
-            Download `Forasni.apk` from Assets and install it on an Android device.
+            Installable Android preview build for devices running **Android 7.0 (API 24) or higher**. Download **`Forasni.apk`** from the **Assets** section below.
+
+            #### What's Included
+            - Guest preview mode with sample marketplace data
+            - Provider directory with smart Arabic & Jordanian dialect search
+            - Business profiles, media showcases, and in-app video preview
+            - Service request tenders, quotes, and booking management interfaces
+
+            #### Build Scope & Notes
+            - Local preview data is used for testing and does not sync across devices until a live Firebase configuration (`google-services.json`) is provided.
+            - Google Sign-In and cloud synchronization require an active Firebase project setup.
+            - Private repository: downloading the APK requires a GitHub account with access to this repository.
           files: Forasni.apk
           prerelease: true
         env:

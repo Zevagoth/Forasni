@@ -1,6 +1,6 @@
 # Forasni (فرصني)
 
-[![Download Forasni APK](https://img.shields.io/badge/📲_اضغط_هنا_لتحميل_التطبيق_مباشرة_(APK)-Forasni_Android-1B5E20?style=for-the-badge&logo=android&logoColor=white)](../../releases/download/v1.0.0-preview.1/Forasni.apk)
+[![Download Forasni APK](https://img.shields.io/badge/Download_APK-Forasni_v1.0.0_Preview-1B5E20?style=for-the-badge&logo=android&logoColor=white)](../../releases/download/v1.0.0-preview.1/Forasni.apk)
 
 **An Arabic-first Android marketplace connecting people in Jordan with local tradespeople and service providers.**
 

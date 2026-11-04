@@ -1,32 +1,26 @@
-<div dir="rtl" align="center">
+# Forasni (فرصني)
 
-# 🛠️ فـرصـنـي | Forasni
-### منصة الحرفيين والخدمات المنزلية الأولى في الأردن 🇯🇴
+**An Arabic-first Android marketplace connecting people in Jordan with local tradespeople and service providers.**
 
-<p dir="ltr" lang="en">Forasni is an Arabic-first Android marketplace for home services in Jordan. Browse local tradespeople by service and area, contact providers directly by phone or WhatsApp, and post service requests to receive quotes.</p>
+Forasni helps customers find providers by service and location, explore profiles and work samples, contact providers by phone or WhatsApp, and post service requests. The app also includes interfaces for quotes, bookings, and provider profiles.
 
-[![تحميل تطبيق فرصني مباشرة للأندرويد](https://img.shields.io/badge/📲_اضغط_هنا_لتحميل_التطبيق_مباشرة_(APK)-Forasni_Jordan-1B5E20?style=for-the-badge&logo=android&logoColor=white)](../../releases/latest/download/Forasni.apk)
+## Highlights
 
-[![أحدث إصدار](https://img.shields.io/github/v/release/heshamjawarneh/forasni?label=الإصدار&style=flat-square&color=00796B)](../../releases/latest)
-[![نظام التشغيل](https://img.shields.io/badge/Android-7.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](../../releases/latest/download/Forasni.apk)
+- Browse local providers across home services and other skilled categories.
+- Search using Arabic terms, including common Jordanian expressions.
+- View provider profiles and media showcases before making contact.
+- Call or message providers directly through WhatsApp.
+- Post job requests and explore available opportunities.
+- Use a guest preview or sign in with Google when Firebase is configured.
 
----
+## Technology
 
-### 👇 لتحميل التطبيق على تلفونك مباشرة:
-1. اضغط على الزر الأخضر بالأعلى **(📲 اضغط هنا لتحميل التطبيق مباشرة APK)** أو ادخل على قسم **[Releases](../../releases/latest)** على يمين الصفحة.
-2. حمّل ملف **`Forasni.apk`** على هاتفك الأندرويد وثبّته مباشرة.
+Forasni is built with **Kotlin** and **Jetpack Compose** for Android. It uses **Firebase Authentication** and **Cloud Firestore** for account and marketplace data.
 
----
+## Development status
 
-## ✨ أبرز مميزات تطبيق «فرصني» (Forasni)
+This project is under active development. There is currently **no downloadable APK release**. The GitHub Actions build requires a Firebase configuration that generates `default_web_client_id` and a signing keystore before it can produce an installable APK.
 
-* 🗺️ **تتبع مباشر لسيارة الحرفي على الخريطة (Live Van Tracking):** مثل تطبيقات التوصيل، شاهد مكان الحرفي بأي شارع في عمّان والمحافظات مع نوع المركبة ورقم اللوحة الأردنية والوقت المتبقي للوصول.
-* 🪪 **كود الأمان وبطاقة هوية الحرفي عند دق الباب:** رمز تحقق من 4 أرقام يطلبه أهل البيت من الحرفي قبل فتح الباب، مع شارة **شهادة عدم محكومية موثقة** ومشاركتها على واتساب العائلة.
-* 👩‍💼 **قسم السيدات والعائلات + 🚨 فزعة طوارئ 24 ساعة:** فلاتر مخصصة لراحة وأمان العائلات الأردنية، وفرق طوارئ للسباكة والكهرباء والأقفال.
-* 📢 **سوق المناقصات والعروض المفتوحة:** انشر طلبك (مع ملاحظة صوتية أو كتابية، وخيار **أجرة يد فقط** أو **شامل القطع**، أو **السعر قابل للمفاوضة**) واستقبل عروض أسعار من الصنايعية، أو ادخل كحرفي واقبل الفرص المتاحة فوراً.
-* 🧾 **توثيق فاتورة قطع الغيار + كفالة رقمية 7 أيام:** فصل شفاف بين أجرة اليد وفاتورة محل مواد البناء (مع إرفاق صورة الفاتورة)، وإصدار سند كفالة مصنعية لمدة 7 أيام بختم «فرصني».
-* 🏘️ **اطلب مع جارك بنفس العمارة ووفّر 30%:** خصم جماعي لجيران نفس العمارة مع دعوة جاهزة لقروب واتساب العمارة.
-* ❄️☀️ **حملات الصيانة الموسمية + 🏠 فحص شقة قبل الشراء/الإيجار + 🚚 حاسبة نقل العفش:** بكجات شتاء وصيف بأسعار مقطوعة، فحص هندسي لـ 40 نقطة، وحاسبة فورية لنقل العفش مع الفك والتركيب.
-* 🏦 **دفع أردني موثق عبر CliQ و IBAN:** نسخ فوري لاسم الـ CliQ أو رقم الـ IBAN مع نظام الضمان وحفظ الحقوق.
+To build locally, configure the Android SDK and JDK 21, provide the app's Firebase `google-services.json` with Google Sign-In enabled, and set up the signing configuration referenced in `app/build.gradle.kts`. Then run `gradle assembleDebug`.
 
-</div>
+Release downloads will appear on the [Releases page](../../releases) once a build has passed and an APK has been published.

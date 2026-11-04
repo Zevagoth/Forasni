@@ -17,10 +17,10 @@ Forasni helps customers find providers by service and location, explore profiles
 
 Forasni is built with **Kotlin** and **Jetpack Compose** for Android. It uses **Firebase Authentication** and **Cloud Firestore** for account and marketplace data.
 
-## Development status
+## Private Android preview
 
-This project is under active development. There is currently **no downloadable APK release**. The GitHub Actions build requires a Firebase configuration that generates `default_web_client_id` and a signing keystore before it can produce an installable APK.
+Repository collaborators can [download the signed Forasni APK](../../releases/download/v1.0.0-preview.1/Forasni.apk) from the [preview release](../../releases/tag/v1.0.0-preview.1). The repository is private, so a GitHub account with access is required.
 
-To build locally, configure the Android SDK and JDK 21, provide the app's Firebase `google-services.json` with Google Sign-In enabled, and set up the signing configuration referenced in `app/build.gradle.kts`. Then run `gradle assembleDebug`.
+This preview runs in guest mode with local sample data. Google Sign-In and Firebase cloud synchronization require a configured Firebase project and are not available in the current APK.
 
-Release downloads will appear on the [Releases page](../../releases) once a build has passed and an APK has been published.
+The GitHub Actions workflow builds a signed release APK using a keystore stored in repository secrets. Development builds require Android SDK, JDK 21, and the signing configuration referenced in `app/build.gradle.kts`.

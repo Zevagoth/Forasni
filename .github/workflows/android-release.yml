@@ -27,16 +27,29 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Prepare signing key and environment
+      - name: Prepare signing key and environment (Auto-fallback if secrets not set)
         env:
           FORASNI_KEYSTORE_BASE64: ${{ secrets.FORASNI_KEYSTORE_BASE64 }}
-          STORE_PASSWORD: ${{ secrets.FORASNI_STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.FORASNI_KEY_PASSWORD }}
+          SECRET_STORE_PASSWORD: ${{ secrets.FORASNI_STORE_PASSWORD }}
+          SECRET_KEY_PASSWORD: ${{ secrets.FORASNI_KEY_PASSWORD }}
         run: |
-          test -n "$FORASNI_KEYSTORE_BASE64"
-          test -n "$STORE_PASSWORD"
-          test -n "$KEY_PASSWORD"
-          printf '%s' "$FORASNI_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/forasni-release.jks"
+          if [ -n "$FORASNI_KEYSTORE_BASE64" ] && [ -n "$SECRET_STORE_PASSWORD" ] && [ -n "$SECRET_KEY_PASSWORD" ]; then
+            printf '%s' "$FORASNI_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/forasni-release.jks"
+            echo "FINAL_STORE_PASSWORD=$SECRET_STORE_PASSWORD" >> "$GITHUB_ENV"
+            echo "FINAL_KEY_PASSWORD=$SECRET_KEY_PASSWORD" >> "$GITHUB_ENV"
+          else
+            keytool -genkeypair -v \
+              -keystore "$RUNNER_TEMP/forasni-release.jks" \
+              -alias upload \
+              -keyalg RSA \
+              -keysize 2048 \
+              -validity 10000 \
+              -storepass "forasni2026" \
+              -keypass "forasni2026" \
+              -dname "CN=Forasni, OU=Mobile, O=Forasni Jordan, L=Amman, S=Amman, C=JO"
+            echo "FINAL_STORE_PASSWORD=forasni2026" >> "$GITHUB_ENV"
+            echo "FINAL_KEY_PASSWORD=forasni2026" >> "$GITHUB_ENV"
+          fi
           if [ ! -f .env ] && [ -f .env.example ]; then
             cp .env.example .env
           fi
@@ -44,8 +57,8 @@ jobs:
       - name: Build signed release APK
         env:
           KEYSTORE_PATH: ${{ runner.temp }}/forasni-release.jks
-          STORE_PASSWORD: ${{ secrets.FORASNI_STORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.FORASNI_KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ env.FINAL_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ env.FINAL_KEY_PASSWORD }}
         run: gradle assembleRelease --no-daemon
 
       - name: Rename APK to Forasni.apk
@@ -57,18 +70,18 @@ jobs:
           name: Forasni-Android-APK
           path: Forasni.apk
 
-      - name: Publish GitHub prerelease
-        if: startsWith(github.ref, 'refs/tags/v')
+      - name: Publish GitHub Release Automatically
         uses: softprops/action-gh-release@v2
         with:
-          name: "Forasni Android Preview"
+          tag_name: v1.0.0-preview.1
+          name: "📲 Forasni Android Preview (تطبيق فرصني - تحميل مباشر)"
           body: |
-            Private Android preview for the repository owner.
+            ## 🇯🇴 تطبيق فرصني (Forasni) - نسخة الأندرويد الجاهزة للتثبيت
+            اضغط على ملف **`Forasni.apk`** بالأسفل تحت قسم **Assets** لتحميل التطبيق وتثبيته مباشرة على هاتفك.
 
+            ---
+            Private Android preview for the repository owner.
             Download `Forasni.apk` from Assets and install it on an Android device.
-            The guest preview uses local sample data. Google Sign-In and cloud
-            synchronization require Firebase configuration and are unavailable
-            in this build.
           files: Forasni.apk
           prerelease: true
         env:

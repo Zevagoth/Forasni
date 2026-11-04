@@ -1,5 +1,7 @@
 # Forasni (فرصني)
 
+[![Download Forasni APK](https://img.shields.io/badge/📲_اضغط_هنا_لتحميل_التطبيق_مباشرة_(APK)-Forasni_Android-1B5E20?style=for-the-badge&logo=android&logoColor=white)](../../releases/download/v1.0.0-preview.1/Forasni.apk)
+
 **An Arabic-first Android marketplace connecting people in Jordan with local tradespeople and service providers.**
 
 Forasni helps customers find providers by service and location, explore profiles and work samples, contact providers by phone or WhatsApp, and post service requests. The app also includes interfaces for quotes, bookings, and provider profiles.
@@ -23,4 +25,4 @@ Repository collaborators can [download the signed Forasni APK](../../releases/do
 
 This preview runs in guest mode with local sample data. Google Sign-In and Firebase cloud synchronization require a configured Firebase project and are not available in the current APK.
 
-The GitHub Actions workflow builds a signed release APK using a keystore stored in repository secrets. Development builds require Android SDK, JDK 21, and the signing configuration referenced in `app/build.gradle.kts`.
+The GitHub Actions workflow builds a signed release APK automatically (using repository secrets if configured, or an automatically generated signing key). Development builds require Android SDK, JDK 21, and the signing configuration referenced in `app/build.gradle.kts`.

@@ -26,6 +26,8 @@ import com.example.ui.screens.ForasniMainScreen
 import com.example.ui.theme.ForasniTheme
 import com.example.ui.viewmodel.ForasniViewModel
 import com.google.firebase.Firebase
+import com.google.firebase.FirebaseApp
+import com.google.firebase.FirebaseOptions
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
@@ -45,6 +47,18 @@ internal fun FirebaseAuth.authStateFlow(): Flow<FirebaseUser?> = callbackFlow {
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Keep the local guest preview usable when no Firebase project is configured.
+        // Authenticated features still require the real google-services.json file.
+        if (FirebaseApp.getApps(this).isEmpty()) {
+            FirebaseApp.initializeApp(
+                this,
+                FirebaseOptions.Builder()
+                    .setApplicationId("1:000000000000:android:0000000000000000")
+                    .setApiKey("ForasniPreviewOnlyNoBackend")
+                    .setProjectId("demo-forasni")
+                    .build()
+            )
+        }
         enableEdgeToEdge()
         setContent {
             AppNavigation()

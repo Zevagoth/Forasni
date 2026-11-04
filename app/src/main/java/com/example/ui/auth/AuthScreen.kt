@@ -76,6 +76,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
+private fun googleWebClientId(context: Context): String? {
+    val id = context.resources.getIdentifier("default_web_client_id", "string", context.packageName)
+    return if (id == 0) null else context.getString(id).takeIf { it.isNotBlank() }
+}
+
 fun attemptAutoSignIn(
     context: Context,
     credentialManager: CredentialManager,
@@ -87,9 +92,7 @@ fun attemptAutoSignIn(
         onAuthSuccess()
         return
     }
-    val clientId = try {
-        context.getString(R.string.default_web_client_id)
-    } catch (e: Exception) {
+    val clientId = googleWebClientId(context) ?: run {
         onUnauthenticated()
         return
     }
@@ -128,9 +131,7 @@ fun onGoogleSignInClicked(
     scope: CoroutineScope,
     onAuthCancelled: () -> Unit = {}
 ) {
-    val clientId = try {
-        context.getString(R.string.default_web_client_id)
-    } catch (e: Exception) {
+    val clientId = googleWebClientId(context) ?: run {
         onAuthError("إعدادات تسجيل الدخول عبر Google غير مكتملة")
         return
     }

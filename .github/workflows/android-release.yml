@@ -27,20 +27,29 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
-      - name: Decode debug keystore & prepare .env
+      - name: Prepare signing key and environment
+        env:
+          FORASNI_KEYSTORE_BASE64: ${{ secrets.FORASNI_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.FORASNI_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.FORASNI_KEY_PASSWORD }}
         run: |
-          if [ -f debug.keystore.base64 ]; then
-            base64 -d debug.keystore.base64 > debug.keystore
-          fi
+          test -n "$FORASNI_KEYSTORE_BASE64"
+          test -n "$STORE_PASSWORD"
+          test -n "$KEY_PASSWORD"
+          printf '%s' "$FORASNI_KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/forasni-release.jks"
           if [ ! -f .env ] && [ -f .env.example ]; then
             cp .env.example .env
           fi
 
-      - name: Build Debug APK
-        run: gradle assembleDebug --no-daemon
+      - name: Build signed release APK
+        env:
+          KEYSTORE_PATH: ${{ runner.temp }}/forasni-release.jks
+          STORE_PASSWORD: ${{ secrets.FORASNI_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.FORASNI_KEY_PASSWORD }}
+        run: gradle assembleRelease --no-daemon
 
       - name: Rename APK to Forasni.apk
-        run: cp app/build/outputs/apk/debug/app-debug.apk Forasni.apk
+        run: cp app/build/outputs/apk/release/app-release.apk Forasni.apk
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
@@ -48,15 +57,19 @@ jobs:
           name: Forasni-Android-APK
           path: Forasni.apk
 
-      - name: Publish Latest GitHub Release
+      - name: Publish GitHub prerelease
+        if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0
-          name: "📲 تطبيق فرصني للأندرويد - Forasni v1.0.0 (تحميل مباشر)"
+          name: "Forasni Android Preview"
           body: |
-            ## 🇯🇴 تطبيق فرصني (Forasni) - النسخة الكاملة للأندرويد
-            اضغط على ملف **`Forasni.apk`** بالأسفل تحت كلمة **Assets** لتحميل التطبيق وتثبيته مباشرة على هاتفك.
+            Private Android preview for the repository owner.
+
+            Download `Forasni.apk` from Assets and install it on an Android device.
+            The guest preview uses local sample data. Google Sign-In and cloud
+            synchronization require Firebase configuration and are unavailable
+            in this build.
           files: Forasni.apk
-          prerelease: false
+          prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

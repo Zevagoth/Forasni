@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -195,9 +196,7 @@ fun DirectoryTabContent(
                     Image(
                         painter = painterResource(id = R.drawable.ic_forasni_hero_banner),
                         contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(235.dp),
+                        modifier = Modifier.matchParentSize(),
                         contentScale = ContentScale.Crop
                     )
                     Column(
@@ -206,30 +205,26 @@ fun DirectoryTabContent(
                             .background(
                                 Brush.verticalGradient(
                                     listOf(
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.65f),
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.94f)
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.72f),
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.95f)
                                     )
                                 )
                             )
-                            .padding(16.dp)
+                            .padding(14.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = "دليل الحرفيين والخدمات الفورية",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                                Text(
-                                    text = "ابحث بالاسم أو المهنة، شاهد صور شغلهم وتقييمات الزبائن، وادفع عبر كليك",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.92f)
-                                )
-                            }
+                            Text(
+                                text = "دليل الحرفيين والخدمات",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
                             Surface(
                                 color = MaterialTheme.colorScheme.tertiaryContainer,
                                 shape = RoundedCornerShape(50),
@@ -249,7 +244,8 @@ fun DirectoryTabContent(
                                     Text(
                                         text = "سجّل كحرفي",
                                         style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onTertiaryContainer
+                                        color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                        maxLines = 1
                                     )
                                 }
                             }
@@ -262,8 +258,10 @@ fun DirectoryTabContent(
                             onValueChange = onSearchQueryChange,
                             placeholder = {
                                 Text(
-                                    text = "ابحث بأي لهجة أو عطل: (موسرجي، قاطع بنزل، كندشن، حنفية بتنقط، خلدا...)",
-                                    style = MaterialTheme.typography.bodySmall
+                                    text = "ابحث عن سباك، كهربائي، مكيف، أو اسم الحي...",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             },
                             leadingIcon = {
@@ -290,59 +288,20 @@ fun DirectoryTabContent(
                                 .testTag("directory_search_input")
                         )
 
-                        val detectedIntent = remember(filterState.searchQuery) {
-                            if (filterState.searchQuery.isBlank()) {
-                                null
-                            } else {
-                                ArabicSmartSearchEngine.searchAndRankProviders(
-                                    emptyList(),
-                                    filterState.searchQuery
-                                ).matchedIntentLabel
-                            }
-                        }
-
-                        if (filterState.searchQuery.isNotBlank()) {
-                            Spacer(modifier = Modifier.height(6.dp))
-                            Surface(
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                shape = RoundedCornerShape(10.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    text = if (detectedIntent != null) {
-                                        "🧠 الخوارزمية الذكية فهمت طلبك: $detectedIntent (مع التسامح مع الأخطاء الإملائية والمرادفات)"
-                                    } else {
-                                        "🧠 البحث الذكي مفعّل: يطابق الجذور اللغوية، المرادفات الأردنية، والأخطاء الإملائية تلقائياً"
-                                    },
-                                    style = MaterialTheme.typography.labelSmall,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                                )
-                            }
-                        }
-
                         Spacer(modifier = Modifier.height(8.dp))
 
-                        // Quick search by Jordanian dialect problem, symptom, or craftsman name
                         Row(
                             modifier = Modifier.horizontalScroll(rememberScrollState()),
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "جرّب البحث الذكي:",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimary
-                            )
                             listOf(
-                                "موسرجي تسريب مي",
-                                "قاطع الكهربا بنزل",
-                                "تعبئة غاز كندشن",
+                                "صيانة مكيف",
+                                "سباك",
+                                "كهربائي",
+                                "شطف عمارات",
                                 "صيانة بويلر",
-                                "ديانا نقل عفش",
-                                "أبو العز التعمري",
-                                "شطف عمارات"
+                                "نقل عفش"
                             ).forEach { quickName ->
                                 Surface(
                                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.22f),
@@ -355,6 +314,7 @@ fun DirectoryTabContent(
                                         text = quickName,
                                         style = MaterialTheme.typography.labelSmall,
                                         color = MaterialTheme.colorScheme.onPrimary,
+                                        maxLines = 1,
                                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                                     )
                                 }
@@ -365,96 +325,38 @@ fun DirectoryTabContent(
             }
         }
 
-        // 1a. Jordanian Special Modes Strip: 24/7 Emergency SOS, Female Section & Family Favorites
+        // 1a. Quick Filter Chips: Emergency 24/7, Female Section, Favorites & Custom Request
         item {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 1.5.dp),
-                modifier = Modifier.fillMaxWidth()
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-                    Text(
-                        text = "فلاتر الثقة والأمان العائلي والطوارئ:",
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(
-                        modifier = Modifier.horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        FilterChip(
-                            selected = filterState.onlyEmergency24h,
-                            onClick = onToggleEmergency24h,
-                            label = { Text("🚨 فزعة / طوارئ 24 ساعة") },
-                            modifier = Modifier.testTag("filter_emergency_24h_chip")
-                        )
-                        FilterChip(
-                            selected = filterState.onlyFemaleProviders,
-                            onClick = onToggleFemaleProviders,
-                            label = { Text("👩‍💼 قسم السيدات والعائلات") },
-                            modifier = Modifier.testTag("filter_female_providers_chip")
-                        )
-                        FilterChip(
-                            selected = filterState.onlyFavorites,
-                            onClick = onToggleFavoritesFilter,
-                            label = { Text("❤️ صنايعية بيتنا (${favoriteProviderIds.size})") },
-                            modifier = Modifier.testTag("filter_favorites_chip")
-                        )
-                    }
-                }
-            }
-        }
-
-        // 1b. Quick Custom Offer Strip (شطف العمارة / جز عشب الحديقة بالمبلغ الذي تحدده)
-        item {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f)
-                ),
-                shape = RoundedCornerShape(16.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 14.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "تريد شطف العمارة أو جز عشب الحديقة بمبلغ تحدده أنت؟",
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                        Text(
-                            text = "اطلب الخدمة الآن وحدد السعر الذي يناسبك (مثلاً 15 أو 20 د.أ) أو تصفح المختصين أدناه",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.85f)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Button(
-                        onClick = onOpenQuickServiceTender,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.secondary
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.AddCircleOutline,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("اطلب وحدد المبلغ", style = MaterialTheme.typography.labelMedium)
-                    }
-                }
+                FilterChip(
+                    selected = filterState.onlyEmergency24h,
+                    onClick = onToggleEmergency24h,
+                    label = { Text("🚨 طوارئ 24 ساعة") },
+                    modifier = Modifier.testTag("filter_emergency_24h_chip")
+                )
+                FilterChip(
+                    selected = filterState.onlyFemaleProviders,
+                    onClick = onToggleFemaleProviders,
+                    label = { Text("👩‍💼 قسم السيدات") },
+                    modifier = Modifier.testTag("filter_female_providers_chip")
+                )
+                FilterChip(
+                    selected = filterState.onlyFavorites,
+                    onClick = onToggleFavoritesFilter,
+                    label = { Text("❤️ المفضلة (${favoriteProviderIds.size})") },
+                    modifier = Modifier.testTag("filter_favorites_chip")
+                )
+                FilterChip(
+                    selected = false,
+                    onClick = onOpenQuickServiceTender,
+                    label = { Text("➕ اطلب وحدد سعرك") }
+                )
             }
         }
 
@@ -666,7 +568,10 @@ fun DirectoryTabContent(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.LocationOn,
                                 contentDescription = null,
@@ -675,14 +580,17 @@ fun DirectoryTabContent(
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "المنطقة الجغرافية (المحافظة والحي):",
-                                style = MaterialTheme.typography.titleSmall
+                                text = "المحافظة والحي:",
+                                style = MaterialTheme.typography.titleSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
                         FilterChip(
                             selected = filterState.onlyAvailableNow,
                             onClick = onToggleOnlyAvailable,
-                            label = { Text("متاح فوراً فقط") }
+                            label = { Text("متاح الآن", maxLines = 1) }
                         )
                     }
 
@@ -839,7 +747,10 @@ private fun NearbyCraftsmenMapCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
                     Icon(
                         imageVector = Icons.Default.MyLocation,
                         contentDescription = null,
@@ -848,18 +759,22 @@ private fun NearbyCraftsmenMapCard(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "خريطة أقرب الحرفيين (${if (selectedGov == "الكل") "الأردن" else selectedGov})",
-                        style = MaterialTheme.typography.titleSmall
+                        text = "خريطة الحرفيين (${if (selectedGov == "الكل") "الأردن" else selectedGov})",
+                        style = MaterialTheme.typography.titleSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+                Spacer(modifier = Modifier.width(6.dp))
                 Surface(
                     color = MaterialTheme.colorScheme.secondaryContainer,
                     shape = RoundedCornerShape(50)
                 ) {
                     Text(
-                        text = "${providers.size} حرفيين بالقرب منك",
+                        text = "${providers.size} بالقرب منك",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        maxLines = 1,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                     )
                 }
@@ -1258,67 +1173,77 @@ fun ProviderDirectoryCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // Portfolio, CliQ & Rate Badge Strip
+            // Portfolio, CliQ & Rate Badge Strip (Balanced horizontal layout - no squeezing)
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.65f),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.clickable { onCardClick() }
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.PhotoLibrary,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                text = "شغلهم المعروض (${provider.portfolioCount}) والتقييمات",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
-                            )
-                        }
-                    }
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = "السعر: ${provider.hourlyRateJod} د.أ",
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                    )
+                }
 
-                    Surface(
-                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.7f),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.clickable { onCliQClick() }
+                Surface(
+                    color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.clickable { onCardClick() }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.QrCode2,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(modifier = Modifier.width(3.dp))
-                            Text(
-                                text = "كليك CliQ",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        }
+                        Icon(
+                            imageVector = Icons.Default.PhotoLibrary,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "أعمالهم (${provider.portfolioCount}) والتقييمات",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            maxLines = 1
+                        )
                     }
                 }
 
-                Text(
-                    text = "الساعة/الخدمة: ${provider.hourlyRateJod} د.أ",
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.75f),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.clickable { onCliQClick() }
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.QrCode2,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.size(14.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "كليك CliQ",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            maxLines = 1
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -1334,10 +1259,10 @@ fun ProviderDirectoryCard(
                         containerColor = MaterialTheme.colorScheme.primary
                     ),
                     shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .defaultMinSize(minHeight = 44.dp)
                         .testTag("call_provider_${provider.id}")
                 ) {
                     Icon(
@@ -1345,8 +1270,12 @@ fun ProviderDirectoryCard(
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "اتصال مباشر", style = MaterialTheme.typography.labelMedium)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "اتصال",
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1
+                    )
                 }
 
                 Button(
@@ -1355,10 +1284,10 @@ fun ProviderDirectoryCard(
                         containerColor = MaterialTheme.colorScheme.secondary
                     ),
                     shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
                     modifier = Modifier
                         .weight(1f)
-                        .height(44.dp)
+                        .defaultMinSize(minHeight = 44.dp)
                         .testTag("whatsapp_provider_${provider.id}")
                 ) {
                     Icon(
@@ -1366,15 +1295,21 @@ fun ProviderDirectoryCard(
                         contentDescription = null,
                         modifier = Modifier.size(16.dp)
                     )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(text = "واتساب", style = MaterialTheme.typography.labelMedium)
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = "واتساب",
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1
+                    )
                 }
 
                 OutlinedButton(
                     onClick = onBookClick,
                     shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
-                    modifier = Modifier.height(44.dp)
+                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 8.dp),
+                    modifier = Modifier
+                        .weight(1f)
+                        .defaultMinSize(minHeight = 44.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.CalendarMonth,
@@ -1382,7 +1317,11 @@ fun ProviderDirectoryCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "اطلب/تتبع", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        text = "اطلب/تتبع",
+                        style = MaterialTheme.typography.labelMedium,
+                        maxLines = 1
+                    )
                 }
             }
         }
@@ -1420,17 +1359,18 @@ fun TendersTabContent(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "الفرص المتاحة للحرفيين وطلبات الزبائن",
-                        style = MaterialTheme.typography.titleLarge,
+                        text = "طلبات الزبائن والفرص المتاحة",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "• للزبون: اطلب إصلاح مكيف، شطف عمارة، أو جز عشب مع ملاحظة صوتية أو كتابية، وحدد السعر أو اتركه بالاتفاق بعد المعاينة.\n• للحرفي: ابحث في الفرص المتاحة واضغط «قبول الوظيفة فوراً» لاستلام العمل والانطلاق للزبون!",
+                        text = "اطلب خدمة وحدد السعر أو اتركه للمعاينة، وللحرفيين: استلم الطلب فوراً وتواصل مع الزبون.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.9f)
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
                     Button(
                         onClick = onOpenCreateTender,
                         colors = ButtonDefaults.buttonColors(
@@ -1439,14 +1379,15 @@ fun TendersTabContent(
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
+                            .defaultMinSize(minHeight = 46.dp)
                             .testTag("open_create_tender_button")
                     ) {
                         Icon(imageVector = Icons.Default.AddCircleOutline, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "نشر طلب خدمة (إصلاح مكيف، شطف عمارة، صيانة...)",
-                            style = MaterialTheme.typography.labelLarge
+                            text = "نشر طلب خدمة جديد",
+                            style = MaterialTheme.typography.labelLarge,
+                            maxLines = 1
                         )
                     }
                 }
@@ -1691,7 +1632,10 @@ private fun TenderItemCard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Icon(
                                 imageVector = if (isPlayingVoiceNote) Icons.Default.Stop else Icons.Default.PlayArrow,
                                 contentDescription = "تشغيل الملاحظة الصوتية",
@@ -1700,19 +1644,23 @@ private fun TenderItemCard(
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = if (isPlayingVoiceNote) {
-                                    "🔊 جارٍ تشغيل تسجيل الزبون الصوتي... ▂▄▆█▄▂"
+                                    "🔊 جارٍ التشغيل... ▂▄▆█▄▂"
                                 } else {
-                                    "🎙️ ملاحظة صوتية مرفقة من الزبون (${tender.voiceNoteDurationLabel()})"
+                                    "🎙️ تسجيل صوتي (${tender.voiceNoteDurationLabel()})"
                                 },
                                 style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onTertiaryContainer
+                                color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
                             )
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = if (isPlayingVoiceNote) "إيقاف" else "استماع",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
                         )
                     }
                 }
@@ -1816,9 +1764,10 @@ private fun TenderItemCard(
                             containerColor = MaterialTheme.colorScheme.secondary
                         ),
                         shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                         modifier = Modifier
-                            .weight(1.15f)
-                            .height(46.dp)
+                            .weight(1.1f)
+                            .defaultMinSize(minHeight = 46.dp)
                             .testTag("accept_job_${tender.id}")
                     ) {
                         Icon(
@@ -1828,22 +1777,25 @@ private fun TenderItemCard(
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = "قبول الوظيفة فوراً",
-                            style = MaterialTheme.typography.labelMedium
+                            text = "قبول الطلب",
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1
                         )
                     }
 
                     OutlinedButton(
                         onClick = onUnlockAndBid,
                         shape = RoundedCornerShape(12.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 8.dp),
                         modifier = Modifier
                             .weight(1f)
-                            .height(46.dp)
+                            .defaultMinSize(minHeight = 46.dp)
                             .testTag("unlock_tender_${tender.id}")
                     ) {
                         Text(
-                            text = "مفاصلة / تقديم عرض",
-                            style = MaterialTheme.typography.labelMedium
+                            text = "تقديم عرض",
+                            style = MaterialTheme.typography.labelMedium,
+                            maxLines = 1
                         )
                     }
                 }
@@ -1883,20 +1835,25 @@ fun PromotedAdsAndPackagesTabContent(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.Campaign,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.tertiaryContainer,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "إعلانات ممولة بـ 5 دنانير (مثل السوق المفتوح)",
+                                text = "الإعلانات الممولة والمثبتة",
                                 style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
                         Surface(
                             color = MaterialTheme.colorScheme.tertiaryContainer,
                             shape = RoundedCornerShape(50)
@@ -1905,6 +1862,7 @@ fun PromotedAdsAndPackagesTabContent(
                                 text = "5 د.أ / أسبوعين",
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                maxLines = 1,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
@@ -1913,7 +1871,7 @@ fun PromotedAdsAndPackagesTabContent(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
-                        text = "روّج لخدمتك أو ورشتك بـ 5 دنانير أردنية فقط لتظهر في أعلى الصفحة بشارة ذهبية (إعلان ممول VIP) مع رقم هاتفك وواتساب وصور قبل وبعد الشغل لآلاف الزبائن في منطقتك بدون أي تعقيد!",
+                        text = "ثبّت إعلان ورشتك أو خدمتك في صدارة الصفحة مع رقمك وصور أعمالك ليصل لآلاف الزبائن مباشرة.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.92f)
                     )
@@ -1929,15 +1887,16 @@ fun PromotedAdsAndPackagesTabContent(
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
+                            .defaultMinSize(minHeight = 48.dp)
                             .testTag("open_promote_5jod_dialog_button")
                     ) {
                         Icon(imageVector = Icons.Default.Campaign, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "🚀 اشترك وروّج إعلانك الآن بـ 5 دنانير فقط",
+                            text = "🚀 أضف إعلانك الممول (5 د.أ)",
                             style = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1
                         )
                     }
                 }
@@ -1967,18 +1926,27 @@ fun PromotedAdsAndPackagesTabContent(
                             shape = RoundedCornerShape(50)
                         ) {
                             Text(
-                                text = "⭐ ${ad.promotionTierLabel}",
+                                text = "⭐ إعلان مميز VIP",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 fontWeight = FontWeight.Bold,
+                                maxLines = 1,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
-                        Text(
-                            text = "👁️ ${ad.viewsCount} مشاهدة • باقة 5 د.أ",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text(
+                                text = ad.priceLabel,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                maxLines = 1,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -1991,30 +1959,25 @@ fun PromotedAdsAndPackagesTabContent(
 
                     Spacer(modifier = Modifier.height(4.dp))
 
-                    Text(
-                        text = "${ad.providerName} • ${ad.governorate} - ${ad.neighborhood}",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.QrCode2,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(15.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            text = "تحويل كليك CliQ: ${ad.cliqAlias} ${if (ad.hasBeforeAfterPhotos) "• 📷 صور قبل وبعد الشغل متوفرة" else ""}",
+                            text = "${ad.providerName} • ${ad.governorate} - ${ad.neighborhood}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.secondary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = "👁️ ${ad.viewsCount}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     Text(
                         text = ad.adDescription,
@@ -2022,52 +1985,43 @@ fun PromotedAdsAndPackagesTabContent(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.secondaryContainer,
-                            shape = RoundedCornerShape(10.dp)
+                        Button(
+                            onClick = { onDirectCallAd(ad) },
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .defaultMinSize(minHeight = 44.dp)
                         ) {
-                            Text(
-                                text = ad.priceLabel,
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                            Icon(
+                                imageVector = Icons.Default.Call,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
                             )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("اتصال مباشر", maxLines = 1)
                         }
-
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(
-                                onClick = { onDirectCallAd(ad) },
-                                shape = RoundedCornerShape(10.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Call,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("اتصال")
-                            }
-                            OutlinedButton(
-                                onClick = { onDirectWhatsAppAd(ad) },
-                                shape = RoundedCornerShape(10.dp),
-                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                            ) {
-                                Icon(
-                                    imageVector = Icons.Default.Whatsapp,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("واتساب")
-                            }
+                        OutlinedButton(
+                            onClick = { onDirectWhatsAppAd(ad) },
+                            shape = RoundedCornerShape(12.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+                            modifier = Modifier
+                                .weight(1f)
+                                .defaultMinSize(minHeight = 44.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Whatsapp,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text("واتساب", maxLines = 1)
                         }
                     }
                 }
@@ -2086,12 +2040,13 @@ fun PromotedAdsAndPackagesTabContent(
             ) {
                 Column(modifier = Modifier.padding(14.dp)) {
                     Text(
-                        text = "🏢 باقات الاشتراك الشهرية للعمارات والفلل (مع حاسبة قطّية الجيران)",
+                        text = "🏢 باقات العمارات والفلل الشهرية",
                         style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     Text(
-                        text = "بدل الطلب كل مرة، اشترك بباقة شهرية ثابتة لشطف العمارة أو تنسيق الحديقة وصيانة المكيفات بخصم خاص:",
+                        text = "اشترك بباقة شهرية ثابتة لشطف العمارة أو صيانة الحدائق مع تقسيم القطّية على الجيران:",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.9f)
                     )
@@ -2184,7 +2139,7 @@ fun BookingsAndEscrowTabContent(
                 shape = RoundedCornerShape(20.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(14.dp)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.MyLocation,
@@ -2193,14 +2148,15 @@ fun BookingsAndEscrowTabContent(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "التتبع اللحظي (مثل طلبات) + التقييم بعد إنهاء العمل",
+                            text = "تتبع الحرفي والتقييم",
                             style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "شاهد موقع الحرفي على الخريطة وكم دقيقة متبقية لوصوله لمنزلك. وعندما يضغط الحرفي على «تم إنهاء العمل»، تفتح لك شاشة التقييم مع كتابة ملاحظتك ليراها جميع الزبائن بعدك.",
+                        text = "تابع وصول الحرفي على الخريطة، وقيّم الخدمة بعد انتهاء العمل.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.9f)
                     )
@@ -3330,7 +3286,10 @@ fun WalletAndAccountTabContent(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Box(
                                 modifier = Modifier
                                     .size(52.dp)
@@ -3345,10 +3304,12 @@ fun WalletAndAccountTabContent(
                                 )
                             }
                             Spacer(modifier = Modifier.width(12.dp))
-                            Column {
+                            Column(modifier = Modifier.weight(1f)) {
                                 Text(
                                     text = profile?.displayName ?: "مستخدم فرصني",
-                                    style = MaterialTheme.typography.titleLarge
+                                    style = MaterialTheme.typography.titleLarge,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text = "${profile?.governorate ?: "عمّان"} • ${profile?.neighborhood ?: "خلدا"} | ${profile?.phoneNumber ?: "+962790000000"}",
@@ -3383,7 +3344,7 @@ fun WalletAndAccountTabContent(
                         FilterChip(
                             selected = !isClient,
                             onClick = { onSwitchAccountType("PROVIDER") },
-                            label = { Text("مقدم خدمة (حرفي مستقل)") },
+                            label = { Text("مقدم خدمة (حرفي)") },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -3398,12 +3359,12 @@ fun WalletAndAccountTabContent(
                         shape = RoundedCornerShape(14.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp)
+                            .defaultMinSize(minHeight = 48.dp)
                             .testTag("open_craftsman_profile_sheet_button")
                     ) {
                         Icon(imageVector = Icons.Default.DirectionsCar, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("إضافة نوع سيارتي ولوحتي الأردنية + تعديل ملفي كحرفي")
+                        Text("تعديل ملفي المهني وبيانات سيارتي")
                     }
                 }
             }
@@ -3424,7 +3385,10 @@ fun WalletAndAccountTabContent(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.AccountBalanceWallet,
                                 contentDescription = null,
@@ -3432,20 +3396,22 @@ fun WalletAndAccountTabContent(
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "محفظة الترويج (5 دنانير) والنقاط عبر كليك CliQ",
+                                text = "محفظة الترويج والنقاط (CliQ)",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
                         }
+                        Spacer(modifier = Modifier.width(8.dp))
                         Surface(
                             color = MaterialTheme.colorScheme.tertiaryContainer,
                             shape = RoundedCornerShape(50)
                         ) {
                             Text(
                                 text = "${profile?.pointsBalance ?: 25L} نقطة",
-                                style = MaterialTheme.typography.titleMedium,
+                                style = MaterialTheme.typography.titleSmall,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
-                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 4.dp)
+                                maxLines = 1,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
                             )
                         }
                     }
